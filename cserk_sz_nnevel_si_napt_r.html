@@ -1,0 +1,2407 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Önnevelési Naptár</title>
+    <!-- Tailwind CSS betöltése -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter, Lora és középkori jellegű kódex betűtípusok -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=EB+Garamond:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+    
+    <script>
+        // Sötét, mélykék - fenyőzöld - sötétbarna cserkész színpaletta konfigurálása
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Lora', 'serif'],
+                        codexTitle: ['Cinzel Decorative', 'serif'],
+                        codexBody: ['EB Garamond', 'serif'],
+                    },
+                    colors: {
+                        scout: {
+                            forest: '#EAE3D2',      // Világos pergamen/krém a fő címekhez sötét alapon
+                            pine: '#2A6F5B',        // Mély fenyőzöld (gombok, aktív elemek)
+                            leaf: '#388E72',        // Gazdag smaragd-erdőzöld (sikerült nap állapota)
+                            mint: '#143832',        // Sötét fenyő-kék háttér (pozitív kártyák)
+                            parchment: '#0E1C26',   // Mély éjkék alapszín
+                            sand: '#2E434E',        // Sötét pala-kék/barna szegélyek
+                            bark: '#D8CEBE',        // Meleg világos homok/pergamen szövegszín
+                            ochre: '#E6A845',       // Meleg borostyán/aranyokker kiemelés
+                            brick: '#9E383B',       // Mély vörösesbarna/téglavörös (elmaradt nap)
+                            blush: '#3A1D22'        // Sötét gesztenyebarna-vörös háttér
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Alap stílusok és téma változók (Sötét / Világos mód) */
+        body {
+            background-color: #0B1922;
+            color: #EAE3D2;
+            transition: background-color 0.35s ease, color 0.35s ease;
+        }
+
+        body.theme-light {
+            background-color: #F4EFE4;
+            color: #2B2118;
+        }
+
+        /* Sötét, mélykék-erdőzöld-sötétbarna áttetsző kártya felület */
+        .scenic-glass-card {
+            background: linear-gradient(145deg, rgba(16, 36, 46, 0.86) 0%, rgba(20, 44, 40, 0.86) 55%, rgba(36, 27, 22, 0.86) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: background 0.35s ease, border-color 0.35s ease;
+        }
+
+        /* Világos módú pergamen-erdei kártya felület és olvasható szövegszínek */
+        body.theme-light .scenic-glass-card {
+            background: linear-gradient(145deg, rgba(252, 249, 242, 0.88) 0%, rgba(244, 248, 243, 0.88) 55%, rgba(247, 240, 228, 0.88) 100%) !important;
+            border-color: #D6C7B2 !important;
+        }
+        body.theme-light .text-scout-forest {
+            color: #1B4332 !important;
+        }
+        body.theme-light .text-scout-bark,
+        body.theme-light .text-scout-bark\/90,
+        body.theme-light .text-scout-bark\/85,
+        body.theme-light .text-scout-bark\/80 {
+            color: #4A3B31 !important;
+        }
+        body.theme-light .border-scout-sand {
+            border-color: #D6C7B2 !important;
+        }
+        body.theme-light .bg-\[\#12242E\]\/85,
+        body.theme-light .bg-\[\#12242E\]\/90,
+        body.theme-light .bg-\[\#12242E\],
+        body.theme-light .bg-\[\#122630\],
+        body.theme-light .bg-\[\#152B36\],
+        body.theme-light .bg-\[\#152D38\],
+        body.theme-light .bg-\[\#16303B\],
+        body.theme-light .bg-\[\#18313D\],
+        body.theme-light .bg-\[\#162D38\] {
+            background-color: rgba(243, 236, 222, 0.9) !important;
+        }
+        body.theme-light .bg-\[\#0D1E26\],
+        body.theme-light .bg-\[\#0D1E27\],
+        body.theme-light .bg-\[\#0D1E27\]\/95,
+        body.theme-light .bg-\[\#0F212B\] {
+            background-color: #FCF9F2 !important;
+        }
+        body.theme-light .bg-\[\#132934\]\/85,
+        body.theme-light .bg-\[\#132630\]\/90 {
+            background-color: rgba(255, 253, 248, 0.92) !important;
+        }
+        body.theme-light .bg-\[\#132934\]\/85:hover,
+        body.theme-light .bg-\[\#16303B\]:hover,
+        body.theme-light .bg-\[\#18313D\]:hover {
+            background-color: #E8F0E8 !important;
+        }
+        body.theme-light .bg-scout-pine,
+        body.theme-light .bg-scout-leaf,
+        body.theme-light .bg-scout-brick {
+            color: #FFFFFF !important;
+        }
+        body.theme-light .bg-scout-leaf *,
+        body.theme-light .bg-scout-brick *,
+        body.theme-light .bg-scout-pine * {
+            color: #FFFFFF !important;
+        }
+        body.theme-light .bg-scout-mint,
+        body.theme-light .bg-scout-mint\/90 {
+            background-color: #E6F4EA !important;
+        }
+        body.theme-light .bg-scout-blush,
+        body.theme-light .bg-scout-blush\/90 {
+            background-color: #FDECEA !important;
+        }
+        body.theme-light .text-emerald-300,
+        body.theme-light .text-emerald-200,
+        body.theme-light .text-emerald-200\/90 {
+            color: #1B4332 !important;
+        }
+        body.theme-light .text-rose-300,
+        body.theme-light .text-rose-200,
+        body.theme-light .text-rose-200\/90 {
+            color: #9E2A2B !important;
+        }
+        body.theme-light .text-scout-ochre,
+        body.theme-light .text-amber-200 {
+            color: #B45309 !important;
+        }
+        /* Világos módban a sötét/fekete elemek cseréje meleg pergamen és erdőzöld tónusokra */
+        body.theme-light .bg-\[\#132F3B\] {
+            background-color: #E7F0E9 !important;
+            border-color: #B7CEBD !important;
+            color: #1B4332 !important;
+        }
+        body.theme-light .bg-\[\#2B2019\],
+        body.theme-light .bg-\[\#2E2218\],
+        body.theme-light .bg-\[\#2D2218\],
+        body.theme-light .bg-\[\#261D18\] {
+            background-color: #F6EAD5 !important;
+            border-color: #DFC79F !important;
+            color: #78350F !important;
+        }
+        body.theme-light .bg-\[\#261D18\]:hover {
+            background-color: #EFE0C4 !important;
+        }
+        body.theme-light .bg-\[\#2A191B\] {
+            background-color: #FBE9E8 !important;
+            border-color: #EBC3C0 !important;
+            color: #9E2A2B !important;
+        }
+        body.theme-light .bg-\[\#2A191B\]:hover {
+            background-color: #F7D7D5 !important;
+        }
+        body.theme-light .bg-\[\#0D1E26\]\/45,
+        body.theme-light .bg-\[\#0E1E26\]\/55 {
+            background-color: rgba(235, 226, 209, 0.55) !important;
+        }
+        body.theme-light .bg-\[\#10232C\]\/70 {
+            background-color: rgba(247, 241, 229, 0.85) !important;
+        }
+        body.theme-light .bg-\[\#182E38\],
+        body.theme-light .bg-\[\#162C36\] {
+            background-color: #EDE4D3 !important;
+            color: #4A3B31 !important;
+        }
+        body.theme-light .bg-\[\#182E38\]:hover {
+            background-color: #E3D7C1 !important;
+        }
+        body.theme-light .bg-\[\#0A161D\] {
+            background-color: #E5DBC8 !important;
+        }
+        body.theme-light .ring-offset-\[\#0E1D25\] {
+            --tw-ring-offset-color: #FCF9F2 !important;
+        }
+        body.theme-light input[type="date"] {
+            color-scheme: light !important;
+        }
+        body.theme-light #toastNotification > div {
+            background-color: #FCF9F2 !important;
+            color: #1B4332 !important;
+            border-color: #2D6A4F !important;
+        }
+        body.theme-light footer {
+            background-color: rgba(244, 239, 228, 0.9) !important;
+            color: #4A3B31 !important;
+        }
+
+        /* Középkori kódex pergamen stílus az oklevélhez (teljesen átlátszatlan, sötét tintával) */
+        .codex-parchment {
+            background-color: #F3EAD3 !important;
+            color: #2B1E14 !important;
+            opacity: 1 !important;
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(217, 119, 6, 0.08), transparent 45%),
+                radial-gradient(circle at 80% 80%, rgba(27, 67, 50, 0.08), transparent 45%),
+                repeating-linear-gradient(0deg, rgba(127, 85, 57, 0.03) 0px, rgba(127, 85, 57, 0.03) 1px, transparent 1px, transparent 4px);
+            box-shadow: inset 0 0 36px rgba(62, 39, 24, 0.35), 0 25px 50px -12px rgba(0, 0, 0, 0.85);
+        }
+
+        /* Finom görgetősáv */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #10232D;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3D545E;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #5C4033;
+            border-radius: 9999px;
+        }
+
+        /* Nyomtatási stílusok */
+        @media print {
+            body {
+                background: white !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-shadow-none {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-scout-pine selection:text-white relative overflow-x-hidden">
+
+    <!-- Háttér: Mélykék, sötétzöld és sötétbarna alkonyi/éjszakai erdei tájkép (Sötét mód) -->
+    <div id="scenicBgDark" class="fixed inset-0 -z-10 pointer-events-none select-none overflow-hidden no-print transition-opacity duration-500" aria-hidden="true">
+        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" class="w-full h-full">
+            <defs>
+                <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#091522" />
+                    <stop offset="52%" stop-color="#112A38" />
+                    <stop offset="100%" stop-color="#142E2B" />
+                </linearGradient>
+                <linearGradient id="farHillGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#173847" stop-opacity="0.75" />
+                    <stop offset="100%" stop-color="#102933" stop-opacity="0.9" />
+                </linearGradient>
+                <linearGradient id="midHillGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#153B36" stop-opacity="0.82" />
+                    <stop offset="100%" stop-color="#0E2824" stop-opacity="0.95" />
+                </linearGradient>
+                <linearGradient id="meadowGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1B362D" stop-opacity="0.85" />
+                    <stop offset="100%" stop-color="#221914" stop-opacity="0.96" />
+                </linearGradient>
+            </defs>
+
+            <!-- Éjszakai mélykék égbolt, holdfény derengés és csillagok -->
+            <rect width="1440" height="900" fill="url(#skyGrad)" />
+            <circle cx="720" cy="210" r="160" fill="#6EE7B7" opacity="0.08" />
+            <circle cx="720" cy="210" r="42" fill="#F3EAD3" opacity="0.22" />
+            <circle cx="320" cy="110" r="1.8" fill="#EAE3D2" opacity="0.55" />
+            <circle cx="490" cy="80" r="1.4" fill="#EAE3D2" opacity="0.45" />
+            <circle cx="960" cy="95" r="2" fill="#EAE3D2" opacity="0.6" />
+            <circle cx="1110" cy="145" r="1.5" fill="#EAE3D2" opacity="0.45" />
+
+            <!-- Távoli hegyvonulatok és sötétbarna-erdőzöld völgyek -->
+            <path d="M-50 560 Q 260 390, 560 510 T 1120 460 T 1500 530 L 1500 900 L -50 900 Z" fill="url(#farHillGrad)" />
+            <path d="M-50 640 Q 340 490, 740 600 T 1500 560 L 1500 900 L -50 900 Z" fill="url(#midHillGrad)" />
+            <path d="M-50 730 Q 480 650, 960 720 T 1500 690 L 1500 900 L -50 900 Z" fill="url(#meadowGrad)" />
+
+            <!-- Bal oldalról belógó fák és sötétbarna törzsek -->
+            <g opacity="0.92">
+                <rect x="28" y="340" width="22" height="560" fill="#2A1D15" />
+                <polygon points="39,140 -45,380 123,380" fill="#0F2E28" />
+                <polygon points="39,230 -65,490 143,490" fill="#174239" />
+                <polygon points="39,340 -80,620 158,620" fill="#0C2420" />
+                <rect x="115" y="450" width="16" height="450" fill="#332319" />
+                <circle cx="105" cy="410" r="78" fill="#18473D" opacity="0.88" />
+                <circle cx="155" cy="445" r="62" fill="#12352E" opacity="0.88" />
+                <path d="M-20 -10 C 90 30, 175 110, 210 195 C 125 180, 45 140, -20 95 Z" fill="#153E36" opacity="0.78" />
+                <path d="M-10 55 C 70 95, 130 165, 150 245 C 80 220, 20 175, -10 135 Z" fill="#0D2924" opacity="0.75" />
+            </g>
+
+            <!-- Jobb oldalról belógó fák és sötétbarna törzsek -->
+            <g opacity="0.92">
+                <rect x="1388" y="320" width="24" height="580" fill="#2A1D15" />
+                <polygon points="1400,120 1310,370 1490,370" fill="#0F2E28" />
+                <polygon points="1400,220 1295,485 1505,485" fill="#174239" />
+                <polygon points="1400,330 1280,625 1520,625" fill="#0C2420" />
+                <rect x="1302" y="460" width="16" height="440" fill="#332319" />
+                <circle cx="1320" cy="415" r="80" fill="#18473D" opacity="0.88" />
+                <circle cx="1272" cy="450" r="60" fill="#12352E" opacity="0.88" />
+                <path d="M1460 -10 C 1345 35, 1265 115, 1225 205 C 1315 185, 1395 145, 1460 95 Z" fill="#153E36" opacity="0.78" />
+                <path d="M1450 60 C 1365 100, 1305 170, 1285 250 C 1355 225, 1415 180, 1450 140 Z" fill="#0D2924" opacity="0.75" />
+            </g>
+        </svg>
+    </div>
+
+    <!-- Háttér: Nappali erdei tájkép (Világos mód) -->
+    <div id="scenicBgLight" class="fixed inset-0 -z-10 pointer-events-none select-none overflow-hidden no-print opacity-0 transition-opacity duration-500" aria-hidden="true">
+        <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" class="w-full h-full">
+            <defs>
+                <linearGradient id="lightSkyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#DCE9DF" />
+                    <stop offset="55%" stop-color="#EDE7D9" />
+                    <stop offset="100%" stop-color="#F6F1E5" />
+                </linearGradient>
+                <linearGradient id="lightHill1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#9BC1A8" stop-opacity="0.55" />
+                    <stop offset="100%" stop-color="#C8DEC8" stop-opacity="0.25" />
+                </linearGradient>
+                <linearGradient id="lightHill2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#6B9E7E" stop-opacity="0.5" />
+                    <stop offset="100%" stop-color="#A8C9B0" stop-opacity="0.25" />
+                </linearGradient>
+                <linearGradient id="lightMeadow" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#87AE82" stop-opacity="0.45" />
+                    <stop offset="100%" stop-color="#D9CEB8" stop-opacity="0.35" />
+                </linearGradient>
+            </defs>
+            <rect width="1440" height="900" fill="url(#lightSkyGrad)" />
+            <circle cx="720" cy="210" r="145" fill="#FDE68A" opacity="0.45" />
+            <path d="M-50 560 Q 260 390, 560 510 T 1120 460 T 1500 530 L 1500 900 L -50 900 Z" fill="url(#lightHill1)" />
+            <path d="M-50 640 Q 340 490, 740 600 T 1500 560 L 1500 900 L -50 900 Z" fill="url(#lightHill2)" />
+            <path d="M-50 730 Q 480 650, 960 720 T 1500 690 L 1500 900 L -50 900 Z" fill="url(#lightMeadow)" />
+            <g opacity="0.88">
+                <rect x="28" y="340" width="22" height="560" fill="#5C4033" />
+                <polygon points="39,140 -45,380 123,380" fill="#2D6A4F" />
+                <polygon points="39,230 -65,490 143,490" fill="#40916C" />
+                <polygon points="39,340 -80,620 158,620" fill="#1B4332" />
+                <rect x="115" y="450" width="16" height="450" fill="#6F4E37" />
+                <circle cx="105" cy="410" r="78" fill="#52B788" opacity="0.82" />
+                <circle cx="155" cy="445" r="62" fill="#40916C" opacity="0.82" />
+                <path d="M-20 -10 C 90 30, 175 110, 210 195 C 125 180, 45 140, -20 95 Z" fill="#2D6A4F" opacity="0.72" />
+            </g>
+            <g opacity="0.88">
+                <rect x="1388" y="320" width="24" height="580" fill="#5C4033" />
+                <polygon points="1400,120 1310,370 1490,370" fill="#2D6A4F" />
+                <polygon points="1400,220 1295,485 1505,485" fill="#40916C" />
+                <polygon points="1400,330 1280,625 1520,625" fill="#1B4332" />
+                <rect x="1302" y="460" width="16" height="440" fill="#6F4E37" />
+                <circle cx="1320" cy="415" r="80" fill="#52B788" opacity="0.82" />
+                <circle cx="1272" cy="450" r="60" fill="#40916C" opacity="0.82" />
+                <path d="M1460 -10 C 1345 35, 1265 115, 1225 205 C 1315 185, 1395 145, 1460 95 Z" fill="#2D6A4F" opacity="0.72" />
+            </g>
+        </svg>
+    </div>
+
+    <!-- Fő konténer -->
+    <div class="max-w-6xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-8 flex-grow">
+        
+        <!-- Fejléc: Cserkész liliom logó + Cím + Eszközök -->
+        <header class="scenic-glass-card relative z-40 rounded-3xl px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 shadow-lg border border-scout-sand">
+            <div class="flex items-center gap-3.5">
+                <!-- Cserkész Liliom SVG embléma -->
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#132F3B] text-scout-ochre flex items-center justify-center shadow-md shrink-0 border-2 border-scout-ochre/45">
+                    <svg class="w-8 h-8 sm:w-9 sm:h-9" viewBox="0 0 64 64" fill="currentColor" aria-hidden="true">
+                        <path d="M32 4C27 14 23 22 25 32C26 36 29 39 30 42H34C35 39 38 36 39 32C41 22 37 14 32 4Z"/>
+                        <path d="M23 33C16 25 8 25 6 33C4 40 11 45 19 42C22 41 25 39 27 42H29C27 38 25 35 23 33Z"/>
+                        <path d="M41 33C48 25 56 25 58 33C60 40 53 45 45 42C42 41 39 39 37 42H35C37 38 39 35 41 33Z"/>
+                        <rect x="21" y="44" width="22" height="4" rx="2"/>
+                        <path d="M27 50H37L35 58L32 61L29 58L27 50Z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-serif text-xl sm:text-2xl md:text-3xl font-bold text-scout-forest tracking-tight">
+                        Önnevelési Naptár
+                    </h1>
+                    <p class="text-xs sm:text-sm text-scout-bark/90 font-medium italic mt-0.5">
+                        „Ragaszkodjatok mindig a fogadalmatokhoz – akkor is, ha már nem vagytok gyerekek. Isten segítsen ebben benneteket.” Bi-Pi
+                    </p>
+                </div>
+            </div>
+
+            <!-- Fejléc műveleti gombok + Jobb felső Beállítások ikon -->
+            <div class="flex items-center gap-2 self-end sm:self-center no-print relative">
+                <button onclick="exportData()" title="Adatok mentése fájlba (JSON)" class="px-3 py-2 rounded-xl bg-[#16303B] hover:bg-[#1E4250] text-scout-forest border border-scout-sand text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span>Mentés</span>
+                </button>
+                <label title="Korábbi mentés betöltése" class="px-3 py-2 rounded-xl bg-[#16303B] hover:bg-[#1E4250] text-scout-forest border border-scout-sand text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-4 h-4 text-scout-ochre" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span>Betöltés</span>
+                    <input type="file" id="importInput" accept=".json" class="hidden" onchange="importData(event)">
+                </label>
+                <button onclick="window.print()" title="Naptár nyomtatása" class="p-2 rounded-xl bg-[#16303B] hover:bg-[#1E4250] text-scout-forest border border-scout-sand shadow-sm transition">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                </button>
+
+                <!-- Beállítások fogaskerék gomb -->
+                <div class="relative">
+                    <button id="settingsToggleBtn" type="button" onclick="toggleSettingsMenu(event)" title="Megjelenési beállítások" aria-label="Beállítások" class="p-2 rounded-xl bg-[#16303B] hover:bg-[#1E4250] text-scout-ochre border border-scout-sand shadow-sm transition">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </button>
+
+                    <!-- Beállítások legördülő menü (Világos / Sötét téma választó - minden ablak fölött) -->
+                    <div id="settingsDropdown" class="hidden absolute right-0 mt-2 w-60 rounded-2xl scenic-glass-card border-2 border-scout-sand shadow-2xl p-3 z-[999]">
+                        <div class="text-xs font-bold uppercase tracking-wider text-scout-bark mb-2 px-1">
+                            Megjelenés / Színpaletta
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <button type="button" id="themeBtnLight" onclick="setTheme('light')" class="w-full px-3 py-2 rounded-xl border text-left text-xs sm:text-sm font-bold flex items-center justify-between transition">
+                                <span class="flex items-center gap-2">
+                                    <span>☀️</span>
+                                    <span>Világos mód</span>
+                                </span>
+                                <span id="themeCheckLight" class="hidden text-emerald-500 font-extrabold">✓</span>
+                            </button>
+                            <button type="button" id="themeBtnDark" onclick="setTheme('dark')" class="w-full px-3 py-2 rounded-xl border text-left text-xs sm:text-sm font-bold flex items-center justify-between transition">
+                                <span class="flex items-center gap-2">
+                                    <span>🌙</span>
+                                    <span>Sötét mód</span>
+                                </span>
+                                <span id="themeCheckDark" class="hidden text-emerald-400 font-extrabold">✓</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Önnevelési Célok / Fogadalmak Szekció -->
+        <section class="scenic-glass-card rounded-3xl p-4 sm:p-5 shadow-lg border border-scout-sand mb-6 print-shadow-none">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-scout-ochre"></span>
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-scout-bark">Aktív Önnevelési Célok</h2>
+                </div>
+                <button onclick="openNewGoalModal()" class="no-print self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-scout-pine hover:bg-scout-leaf text-scout-forest text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-1.5 border border-emerald-400/25">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Új cél kitűzése</span>
+                </button>
+            </div>
+
+            <!-- Cél választó fülek -->
+            <div id="goalTabsContainer" class="flex flex-wrap gap-2 mb-3"></div>
+
+            <!-- Aktuális cél fejléce és részletei -->
+            <div class="bg-[#12242E]/85 rounded-2xl p-3.5 sm:p-4 border border-scout-sand flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex-grow min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                        <span id="activeGoalFrequencyBadge" class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold uppercase tracking-wide bg-scout-mint text-emerald-300 border border-emerald-500/35">
+                            Napi cél
+                        </span>
+                        <span id="activeGoalPeriodBadge" class="px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-[#2B2019] text-amber-200 border border-amber-500/30">
+                            Időtartam
+                        </span>
+                    </div>
+                    <h3 id="activeGoalTitle" class="font-serif text-lg sm:text-xl font-bold text-scout-forest truncate">
+                        Cél megnevezése
+                    </h3>
+                    <p id="activeGoalDescription" class="text-xs sm:text-sm text-scout-bark/90 mt-0.5">
+                        Cél leírása...
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 shrink-0 no-print">
+                    <!-- Oklevél gomb (akkor aktív, ha az utolsó napra beírásra került egy érték) -->
+                    <button id="openCertificateBtn" onclick="openCertificateModal(true)" class="hidden px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-scout-ochre hover:from-amber-500 hover:to-amber-400 text-[#1A120B] text-xs sm:text-sm font-extrabold shadow-md transition flex items-center gap-1.5 border border-amber-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                        <span>Teljesítési Oklevél</span>
+                    </button>
+
+                    <button onclick="openEditGoalModal()" class="px-3 py-2 rounded-xl bg-[#18313D] hover:bg-[#224352] text-scout-forest border border-scout-sand text-xs font-semibold transition flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <span>Szerkesztés</span>
+                    </button>
+
+                    <button id="deleteGoalBtn" onclick="confirmDeleteCurrentGoal()" class="px-3 py-2 rounded-xl bg-[#2A191B] hover:bg-[#3D2225] text-rose-300 border border-rose-900/60 text-xs font-semibold transition flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>Törlés</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fő elrendezés: Naptár (8 oszlop) + Önreflexió és Statisztikák (4 oszlop) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Naptár kártya (8 oszlop) -->
+            <main class="lg:col-span-8 scenic-glass-card rounded-3xl p-4 sm:p-6 shadow-xl border border-scout-sand print-shadow-none">
+                
+                <!-- Naptár Navigációs Fejléc + Nézetváltó -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-scout-sand">
+                    <div class="flex items-center justify-between sm:justify-start gap-2">
+                        <button onclick="navigatePeriod(-1)" aria-label="Előző időszak" class="no-print p-2.5 rounded-2xl bg-[#152D38] hover:bg-[#1E3F4E] text-scout-forest border border-scout-sand transition active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        
+                        <div class="text-center min-w-[175px]">
+                            <h2 id="currentPeriodLabel" class="font-serif text-xl sm:text-2xl font-bold text-scout-forest capitalize">
+                                2026. November
+                            </h2>
+                            <button onclick="goToToday()" class="no-print text-xs font-semibold text-emerald-300 hover:text-scout-ochre underline underline-offset-2 mt-0.5">
+                                Ugrás a mai napra
+                            </button>
+                        </div>
+
+                        <button onclick="navigatePeriod(1)" aria-label="Következő időszak" class="no-print p-2.5 rounded-2xl bg-[#152D38] hover:bg-[#1E3F4E] text-scout-forest border border-scout-sand transition active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Nézetváltó fülek -->
+                    <div id="viewSwitcherContainer" class="no-print flex items-center bg-[#0D1E26] p-1 rounded-2xl border border-scout-sand self-center sm:self-auto">
+                        <button type="button" data-view="daily" onclick="switchView('daily')" class="view-tab px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition">
+                            Napi nézet
+                        </button>
+                        <button type="button" data-view="weekly" onclick="switchView('weekly')" class="view-tab px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition">
+                            Hónap hetei
+                        </button>
+                        <button type="button" data-view="monthly" onclick="switchView('monthly')" class="view-tab px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition">
+                            Év hónapjai
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1. NÉZET: Havi Napi Naptár -->
+                <div id="dailyViewContainer">
+                    <div class="grid grid-cols-7 gap-1.5 sm:gap-2.5 mb-2 text-center">
+                        <div class="text-xs font-bold uppercase tracking-wider text-scout-bark py-1">Hét</div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-scout-bark py-1">Kedd</div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-scout-bark py-1">Sze</div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-scout-bark py-1">Csüt</div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-scout-bark py-1">Pén</div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-scout-ochre py-1">Szo</div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-scout-ochre py-1">Vas</div>
+                    </div>
+
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-2 sm:gap-3 pt-1"></div>
+
+                    <!-- Jelmagyarázat -->
+                    <div class="mt-6 pt-4 border-t border-scout-sand flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-scout-bark">
+                        <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-lg bg-scout-leaf text-scout-forest flex items-center justify-center shadow-2xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                </span>
+                                <span class="font-medium">1. kattintás: Sikerült</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-lg bg-scout-brick text-scout-forest flex items-center justify-center shadow-2xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                                <span class="font-medium">2. kattintás: Elmaradt</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-lg bg-[#152B36] border border-scout-sand flex items-center justify-center"></span>
+                                <span class="font-medium">3. kattintás: Alapállapot</span>
+                            </div>
+                        </div>
+                        <span class="text-xs text-scout-bark/80 italic">Előre nem jelölhető; visszamenőleg szerkeszthető.</span>
+                    </div>
+                </div>
+
+                <!-- 2. NÉZET: Hónap hetei -->
+                <div id="weeklyViewContainer" class="hidden">
+                    <div id="weeklyBanner" class="mb-4 p-3 rounded-2xl bg-[#122630] border border-scout-sand text-xs sm:text-sm text-scout-bark flex items-center justify-between gap-2"></div>
+                    <div id="weeksListGrid" class="flex flex-col gap-3.5 pt-1"></div>
+                </div>
+
+                <!-- 3. NÉZET: Év hónapjai -->
+                <div id="monthlyViewContainer" class="hidden">
+                    <div id="monthlyBanner" class="mb-4 p-3 rounded-2xl bg-[#122630] border border-scout-sand text-xs sm:text-sm text-scout-bark flex items-center justify-between gap-2"></div>
+                    <div id="monthsYearGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5 pt-1"></div>
+                </div>
+            </main>
+
+            <!-- Oldalsáv: Önreflexió Tér + Statisztikák + Nullázás (4 oszlop) -->
+            <aside class="lg:col-span-4 flex flex-col gap-5">
+                
+                <!-- ÖNREFLEXIÓ KÁRTYA -->
+                <div id="reflectionCard" class="scenic-glass-card rounded-3xl p-5 shadow-xl border-2 border-scout-pine/60 print-shadow-none transition-all">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-xl bg-[#132F3B] text-scout-ochre border border-scout-ochre/35 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            </span>
+                            <div>
+                                <h3 class="font-serif text-base sm:text-lg font-bold text-scout-forest leading-tight">
+                                    Önreflexió
+                                </h3>
+                                <p id="reflectionDateSubtitle" class="text-xs font-semibold text-emerald-300">
+                                    2026. november 19.
+                                </p>
+                            </div>
+                        </div>
+                        <span id="reflectionStatusPill" class="px-2.5 py-1 rounded-xl text-xs font-bold bg-[#152B36] text-scout-bark border border-scout-sand">
+                            Üres
+                        </span>
+                    </div>
+
+                    <!-- Gyors állapotváltó gombok a kiválasztott naphoz -->
+                    <div id="reflectionQuickActions" class="grid grid-cols-3 gap-1.5 my-3 no-print">
+                        <button type="button" onclick="setSelectedDayStatus('success')" class="py-1.5 px-2 rounded-xl text-xs font-semibold bg-scout-mint hover:bg-scout-leaf text-emerald-200 hover:text-white border border-emerald-500/35 transition">
+                            ✓ Sikerült
+                        </button>
+                        <button type="button" onclick="setSelectedDayStatus('fail')" class="py-1.5 px-2 rounded-xl text-xs font-semibold bg-scout-blush hover:bg-scout-brick text-rose-200 hover:text-white border border-rose-500/35 transition">
+                            ✕ Elmaradt
+                        </button>
+                        <button type="button" onclick="setSelectedDayStatus('empty')" class="py-1.5 px-2 rounded-xl text-xs font-semibold bg-[#182E38] hover:bg-[#23414F] text-scout-bark border border-scout-sand transition">
+                            ↺ Törlés
+                        </button>
+                    </div>
+
+                    <p id="reflectionPromptHint" class="text-xs text-scout-bark/90 italic mb-2">
+                        Gondold át röviden: mi segített ma a teljesítésben, vagy mi akadályozott meg benne?
+                    </p>
+
+                    <textarea id="reflectionTextarea" rows="4" oninput="handleReflectionInput(this.value)" placeholder="Írd le ide a mai tapasztalataidat, tanulságaidat..." class="w-full px-3.5 py-2.5 rounded-2xl bg-[#0D1E27]/95 border border-scout-sand focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 outline-none text-sm text-scout-forest placeholder-scout-bark/50 resize-y"></textarea>
+
+                    <div class="flex items-center justify-between mt-2 text-[11px] text-scout-bark/80">
+                        <span id="reflectionSavedIndicator">Automatikusan mentve</span>
+                        <button type="button" onclick="clearCurrentReflection()" class="no-print hover:text-rose-300 underline">Jegyzet törlése</button>
+                    </div>
+                </div>
+
+                <!-- Összesítő Statisztikák Kártya -->
+                <div class="scenic-glass-card rounded-3xl p-5 shadow-xl border border-scout-sand print-shadow-none">
+                    <h3 id="statsCardTitle" class="font-serif text-lg font-bold text-scout-forest mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-scout-ochre" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        <span>Statisztika</span>
+                    </h3>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-scout-mint/90 rounded-2xl p-3.5 border border-emerald-500/30">
+                            <div id="statSuccessLabel" class="text-xs font-semibold text-emerald-200/90">Sikerült napok</div>
+                            <div id="statSuccessCount" class="text-2xl sm:text-3xl font-extrabold text-emerald-300 mt-1">0</div>
+                        </div>
+                        <div class="bg-scout-blush/90 rounded-2xl p-3.5 border border-rose-500/30">
+                            <div id="statFailLabel" class="text-xs font-semibold text-rose-200/90">Elmaradt napok</div>
+                            <div id="statFailCount" class="text-2xl sm:text-3xl font-extrabold text-rose-300 mt-1">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Sikerességi arány -->
+                    <div class="bg-[#12242E]/90 rounded-2xl p-3.5 border border-scout-sand mb-3">
+                        <div class="flex justify-between items-center text-xs font-bold text-scout-bark mb-1.5">
+                            <span id="statRateLabel">Sikerességi arány</span>
+                            <span id="statSuccessRate" class="text-emerald-300 text-sm">0%</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-[#0A161D] rounded-full overflow-hidden border border-scout-sand/50">
+                            <div id="statProgressBar" class="h-full bg-emerald-400 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Aktív és Rekord Sorozat -->
+                    <div class="bg-[#12242E]/90 rounded-2xl p-3.5 border border-scout-sand flex items-center justify-between">
+                        <div>
+                            <div class="text-xs font-semibold text-scout-bark/85">Aktív sikersorozat</div>
+                            <div class="text-base font-bold text-emerald-300 mt-0.5"><span id="statCurrentStreak">0</span> nap</div>
+                        </div>
+                        <div class="h-8 w-px bg-scout-sand"></div>
+                        <div class="text-right">
+                            <div class="text-xs font-semibold text-scout-bark/85">Rekord sorozat</div>
+                            <div class="text-base font-bold text-scout-ochre mt-0.5"><span id="statBestStreak">0</span> nap</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adatok visszaállítása / Nullázás kártya -->
+                <div class="scenic-glass-card rounded-3xl p-5 shadow-md border border-scout-sand no-print">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-scout-bark mb-3">Adatok visszaállítása</h4>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="confirmResetCurrentMonth()" class="w-full py-2.5 px-4 rounded-xl bg-[#261D18] hover:bg-[#362820] text-amber-200 border border-amber-800/50 text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4 text-scout-ochre" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <span>Aktuális hónap nullázása</span>
+                        </button>
+                    </div>
+                </div>
+
+            </aside>
+        </div>
+    </div>
+
+    <!-- Lábléc -->
+    <footer class="text-center py-4 px-4 text-xs font-semibold text-scout-bark/90 bg-[#0B1820]/80 backdrop-blur-xs border-t border-scout-sand/70 no-print">
+        Jó munkát! • Az adatok és az önreflexiók automatikusan mentésre kerülnek a böngésződben.
+    </footer>
+
+    <!-- Új / Szerkesztett Cél Modális Ablak -->
+    <div id="goalModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/70 backdrop-blur-xs transition-opacity">
+        <div class="scenic-glass-card rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-scout-sand transform transition-all max-h-[92vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-scout-sand">
+                <h3 id="goalModalHeading" class="font-serif text-xl font-bold text-scout-forest">Új önnevelési cél kitűzése</h3>
+                <button onclick="closeGoalModal()" class="p-1.5 rounded-xl text-scout-bark hover:bg-[#1B3542] transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <form id="goalForm" onsubmit="handleSaveGoal(event)" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-scout-bark mb-1.5">Cél megnevezése *</label>
+                    <input type="text" id="goalTitleInput" required maxlength="60" placeholder="Pl.: Reggeli torna, Napi 15 perc olvasás..." class="w-full px-3.5 py-2.5 rounded-xl bg-[#0D1E27] border border-scout-sand focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 outline-none text-sm font-semibold text-scout-forest placeholder-scout-bark/50">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-scout-bark mb-1.5">Rövid leírás / Fogadalom szövege</label>
+                    <textarea id="goalDescInput" rows="2" maxlength="160" placeholder="Miért fontos nekem ez a vállalás?" class="w-full px-3.5 py-2 rounded-xl bg-[#0D1E27] border border-scout-sand focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 outline-none text-sm text-scout-forest placeholder-scout-bark/50"></textarea>
+                </div>
+
+                <!-- Gyakoriság típusa -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-scout-bark mb-1.5">Vállalás típusa</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" data-freq="daily" onclick="selectModalFrequency('daily')" class="freq-option-btn py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-bold transition">
+                            Napi cél
+                        </button>
+                        <button type="button" data-freq="weekly" onclick="selectModalFrequency('weekly')" class="freq-option-btn py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-bold transition">
+                            Heti cél
+                        </button>
+                        <button type="button" data-freq="monthly" onclick="selectModalFrequency('monthly')" class="freq-option-btn py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-bold transition">
+                            Havi cél
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Heti alkalomszám csúszka -->
+                <div id="weeklyTargetField" class="hidden bg-[#12242E] p-3.5 rounded-2xl border border-scout-sand">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label for="weeklyTargetInput" class="text-xs font-bold text-scout-forest">Hetente hányszor szeretnéd teljesíteni?</label>
+                        <span id="weeklyTargetValueLabel" class="px-2.5 py-0.5 rounded-lg bg-scout-mint text-emerald-300 font-extrabold text-sm">3 alkalom / hét</span>
+                    </div>
+                    <input type="range" id="weeklyTargetInput" min="1" max="7" value="3" oninput="document.getElementById('weeklyTargetValueLabel').textContent = this.value + ' alkalom / hét'" class="w-full accent-emerald-400 cursor-pointer">
+                </div>
+
+                <!-- Havi alkalomszám csúszka -->
+                <div id="monthlyTargetField" class="hidden bg-[#12242E] p-3.5 rounded-2xl border border-scout-sand">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label for="monthlyTargetInput" class="text-xs font-bold text-scout-forest">Havonta hányszor szeretnéd teljesíteni?</label>
+                        <span id="monthlyTargetValueLabel" class="px-2.5 py-0.5 rounded-lg bg-scout-mint text-emerald-300 font-extrabold text-sm">12 alkalom / hónap</span>
+                    </div>
+                    <input type="range" id="monthlyTargetInput" min="1" max="31" value="12" oninput="document.getElementById('monthlyTargetValueLabel').textContent = this.value + ' alkalom / hónap'" class="w-full accent-emerald-400 cursor-pointer">
+                </div>
+
+                <!-- Kezdet és vég dátum -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#12242E] p-3.5 rounded-2xl border border-scout-sand">
+                    <div>
+                        <label for="goalStartDateInput" class="block text-xs font-bold text-scout-bark mb-1">Kezdeti dátum *</label>
+                        <input type="date" id="goalStartDateInput" required class="w-full px-3 py-2 rounded-xl bg-[#0D1E27] border border-scout-sand text-sm font-semibold text-scout-forest outline-none focus:border-emerald-400 [color-scheme:dark]">
+                    </div>
+                    <div>
+                        <label for="goalEndDateInput" class="block text-xs font-bold text-scout-bark mb-1">Végdátum *</label>
+                        <input type="date" id="goalEndDateInput" required class="w-full px-3 py-2 rounded-xl bg-[#0D1E27] border border-scout-sand text-sm font-semibold text-scout-forest outline-none focus:border-emerald-400 [color-scheme:dark]">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-2 pt-3 border-t border-scout-sand">
+                    <button type="button" onclick="closeGoalModal()" class="px-4 py-2.5 rounded-xl bg-[#162D38] hover:bg-[#1F3E4D] text-scout-bark border border-scout-sand text-sm font-semibold transition">
+                        Mégse
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-scout-pine hover:bg-scout-leaf text-scout-forest text-sm font-bold shadow-md transition">
+                        Mentés
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Megerősítő Modális Ablak -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/70 backdrop-blur-xs transition-opacity">
+        <div class="scenic-glass-card rounded-3xl max-w-md w-full p-6 shadow-2xl border border-scout-sand transform transition-all">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-[#2E2218] text-scout-ochre border border-amber-600/40 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <h3 id="confirmModalTitle" class="font-serif text-lg font-bold text-scout-forest">Megerősítés</h3>
+            </div>
+            <p id="confirmModalMessage" class="text-sm text-scout-bark mb-6 leading-relaxed">
+                Biztosan végrehajtod ezt a műveletet?
+            </p>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeConfirmModal()" class="px-4 py-2 rounded-xl bg-[#162D38] hover:bg-[#1F3E4D] text-scout-bark border border-scout-sand text-sm font-semibold transition">
+                    Mégse
+                </button>
+                <button id="confirmModalActionBtn" class="px-4 py-2 rounded-xl bg-scout-brick hover:bg-red-700 text-scout-forest text-sm font-semibold shadow-sm transition">
+                    Igen, végrehajtom
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KÖZÉPKORI KÓDEX STÍLUSÚ TELJESÍTÉSI OKLEVÉL MODÁLIS ABLAK (Teljesen átlátszatlan!) -->
+    <div id="certificateModal" class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-5 bg-black/75 backdrop-blur-xs overflow-y-auto">
+        <div class="codex-parchment relative max-w-3xl w-full rounded-2xl p-3 sm:p-6 my-auto border-4 border-amber-800/85">
+            
+            <!-- Középkori kódex indás-leveles keretdíszítés (SVG) -->
+            <div class="pointer-events-none select-none absolute inset-1.5 border-2 border-[#1B4332]/65 rounded-xl" aria-hidden="true">
+                <svg class="w-16 h-16 sm:w-24 sm:h-24 absolute -top-1 -left-1" viewBox="0 0 100 100" fill="none">
+                    <path d="M6 94 L6 16 Q6 6 16 6 L94 6" stroke="#B45309" stroke-width="3" />
+                    <path d="M14 78 C14 42, 34 18, 78 14" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M26 36 C16 28, 18 16, 30 22 C36 25, 32 34, 26 36 Z" fill="#2D6A4F"/>
+                    <path d="M44 22 C38 12, 48 8, 54 16 C58 22, 50 26, 44 22 Z" fill="#D97706"/>
+                    <path d="M20 56 C10 50, 12 38, 22 44 C28 48, 25 56, 20 56 Z" fill="#40916C"/>
+                    <circle cx="15" cy="15" r="4.5" fill="#D97706"/>
+                </svg>
+                <svg class="w-16 h-16 sm:w-24 sm:h-24 absolute -top-1 -right-1 scale-x-[-1]" viewBox="0 0 100 100" fill="none">
+                    <path d="M6 94 L6 16 Q6 6 16 6 L94 6" stroke="#B45309" stroke-width="3" />
+                    <path d="M14 78 C14 42, 34 18, 78 14" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M26 36 C16 28, 18 16, 30 22 C36 25, 32 34, 26 36 Z" fill="#2D6A4F"/>
+                    <path d="M44 22 C38 12, 48 8, 54 16 C58 22, 50 26, 44 22 Z" fill="#D97706"/>
+                    <path d="M20 56 C10 50, 12 38, 22 44 C28 48, 25 56, 20 56 Z" fill="#40916C"/>
+                    <circle cx="15" cy="15" r="4.5" fill="#D97706"/>
+                </svg>
+                <svg class="w-16 h-16 sm:w-24 sm:h-24 absolute -bottom-1 -left-1 scale-y-[-1]" viewBox="0 0 100 100" fill="none">
+                    <path d="M6 94 L6 16 Q6 6 16 6 L94 6" stroke="#B45309" stroke-width="3" />
+                    <path d="M14 78 C14 42, 34 18, 78 14" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M26 36 C16 28, 18 16, 30 22 C36 25, 32 34, 26 36 Z" fill="#2D6A4F"/>
+                    <path d="M44 22 C38 12, 48 8, 54 16 C58 22, 50 26, 44 22 Z" fill="#D97706"/>
+                    <circle cx="15" cy="15" r="4.5" fill="#D97706"/>
+                </svg>
+                <svg class="w-16 h-16 sm:w-24 sm:h-24 absolute -bottom-1 -right-1 scale-[-1]" viewBox="0 0 100 100" fill="none">
+                    <path d="M6 94 L6 16 Q6 6 16 6 L94 6" stroke="#B45309" stroke-width="3" />
+                    <path d="M14 78 C14 42, 34 18, 78 14" stroke="#1B4332" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M26 36 C16 28, 18 16, 30 22 C36 25, 32 34, 26 36 Z" fill="#2D6A4F"/>
+                    <path d="M44 22 C38 12, 48 8, 54 16 C58 22, 50 26, 44 22 Z" fill="#D97706"/>
+                    <circle cx="15" cy="15" r="4.5" fill="#D97706"/>
+                </svg>
+            </div>
+
+            <!-- Bezárás gomb -->
+            <button onclick="closeCertificateModal()" class="no-print absolute top-4 right-4 z-20 p-2 rounded-full bg-amber-900/15 hover:bg-amber-900/25 text-[#3B2618] transition" aria-label="Bezárás">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <!-- Oklevél belső tartalom (kifejezetten sötét tintaszínekkel a világos pergamenen) -->
+            <div class="relative z-10 px-4 sm:px-10 py-6 sm:py-8 text-center text-[#2B1E14]">
+                <div class="inline-block px-3.5 py-1 rounded-full bg-[#1B4332] text-amber-300 font-codexBody text-xs sm:text-sm font-bold tracking-widest uppercase mb-3 border border-amber-500/60 shadow-xs">
+                    <span id="certOrdinalBadge">1. Teljesített Önnevelési Cél</span>
+                </div>
+
+                <!-- Fő felirat díszes növényes "E" iniciáléval -->
+                <div class="flex items-center justify-center gap-2 sm:gap-3 my-2">
+                    <svg class="w-14 h-14 sm:w-20 sm:h-20 shrink-0 drop-shadow-xs" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="6" y="6" width="88" height="88" rx="14" fill="#1B4332" stroke="#D97706" stroke-width="3.5"/>
+                        <rect x="12" y="12" width="76" height="76" rx="10" stroke="#FCD34D" stroke-width="1" stroke-dasharray="3 2"/>
+                        <path d="M18 82 C26 60, 22 35, 36 20" stroke="#52B788" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M22 65 C14 58, 16 48, 25 53 Z" fill="#74C69D"/>
+                        <path d="M26 42 C34 34, 42 38, 33 46 Z" fill="#95D5B2"/>
+                        <path d="M72 22 C82 36, 78 65, 68 80" stroke="#52B788" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M76 50 C86 45, 86 58, 75 58 Z" fill="#74C69D"/>
+                        <text x="51" y="70" text-anchor="middle" font-family="'Cinzel Decorative', serif" font-weight="900" font-size="60" fill="#FBBF24" stroke="#78350F" stroke-width="1.5">E</text>
+                    </svg>
+                    <h2 class="font-codexTitle text-2xl sm:text-4xl font-black text-[#1B4332] tracking-wide text-left leading-tight">
+                        lismerő<br class="sm:hidden"> Oklevél
+                    </h2>
+                </div>
+
+                <p class="font-codexBody italic text-base sm:text-lg text-[#4A3222] mt-2">
+                    Ezen pergamen tanúsítja, hogy tulajdonosa hűséges kitartással végigjárta vállalása útját:
+                </p>
+
+                <!-- Konkrét cél megnevezése -->
+                <div class="my-4 py-3 px-4 rounded-xl bg-amber-900/10 border-y-2 border-amber-800/45">
+                    <div id="certGoalTitle" class="font-codexTitle text-xl sm:text-2xl font-bold text-[#1B4332]">
+                        Reggeli torna és nyújtás
+                    </div>
+                    <div id="certGoalPeriod" class="font-codexBody text-sm sm:text-base text-[#4A3222] mt-1">
+                        2026. 11. 01. – 2026. 11. 19. • Napi cél
+                    </div>
+                </div>
+
+                <!-- 4 Statisztikai kártya -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 my-4 text-center">
+                    <div class="p-3 rounded-xl bg-[#FBF7EC] border border-amber-800/35 shadow-2xs">
+                        <div class="font-codexBody text-xs uppercase tracking-wider text-[#4A3222] font-bold">Leghosszabb sorozat</div>
+                        <div id="certBestStreak" class="font-codexTitle text-xl sm:text-2xl font-black text-[#B45309] mt-1">0 nap</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-[#FBF7EC] border border-amber-800/35 shadow-2xs">
+                        <div id="certSuccessUnitLabel" class="font-codexBody text-xs uppercase tracking-wider text-[#4A3222] font-bold">Teljesítve</div>
+                        <div id="certSuccessCount" class="font-codexTitle text-xl sm:text-2xl font-black text-[#1B4332] mt-1">0</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-[#FBF7EC] border border-amber-800/35 shadow-2xs">
+                        <div id="certFailUnitLabel" class="font-codexBody text-xs uppercase tracking-wider text-[#4A3222] font-bold">Elmaradt</div>
+                        <div id="certFailCount" class="font-codexTitle text-xl sm:text-2xl font-black text-[#9E383B] mt-1">0</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-[#FBF7EC] border border-amber-800/35 shadow-2xs">
+                        <div class="font-codexBody text-xs uppercase tracking-wider text-[#4A3222] font-bold">Legsikeresebb nap</div>
+                        <div id="certBestWeekday" class="font-codexBody text-base sm:text-lg font-bold text-[#2D6A4F] mt-1 leading-tight">—</div>
+                    </div>
+                </div>
+
+                <!-- Sorozat-hegyvonulat idővonal diagram -->
+                <div class="mt-4 p-3.5 rounded-xl bg-[#FBF7EC] border border-amber-800/40 text-left">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="font-codexBody text-xs sm:text-sm font-bold text-[#1B4332] uppercase tracking-wider">
+                            Lelkesedés domborzat
+                        </span>
+                        <span class="font-codexBody text-xs italic text-[#4A3222]">
+                            Csúcsok = egymást követő teljesítések
+                        </span>
+                    </div>
+                    <div id="certTimelineChartContainer" class="w-full overflow-hidden"></div>
+                </div>
+
+                <!-- Aláírás / Cserkész jelmondat & Nyomtatás gomb -->
+                <div class="mt-5 pt-4 border-t border-amber-800/35 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="font-codexBody italic text-sm text-[#4A3222]">
+                        „Jó munkát!” • Kelt: <span id="certIssueDate">2026. november 19.</span>
+                    </div>
+                    <div class="flex items-center gap-2 no-print">
+                        <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-[#1B4332] hover:bg-[#2D6A4F] text-amber-200 font-codexBody font-bold text-sm shadow-sm transition">
+                            Oklevél nyomtatása
+                        </button>
+                        <button onclick="closeCertificateModal()" class="px-4 py-2 rounded-xl bg-amber-900/15 hover:bg-amber-900/25 text-[#3B2618] font-codexBody font-bold text-sm transition">
+                            Bezárás
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Értesítő Toast Üzenet -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none no-print">
+        <div class="bg-[#122933] text-scout-forest px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/45 flex items-center gap-2.5 text-sm font-medium">
+            <span class="w-2.5 h-2.5 rounded-full bg-scout-ochre"></span>
+            <span id="toastMessage">Mentve!</span>
+        </div>
+    </div>
+
+    <!-- Alkalmazás Logika -->
+    <script>
+        const STORAGE_KEY = 'cserkesz_onneveles_v3';
+
+        const HUNGARIAN_MONTHS = [
+            'január', 'február', 'március', 'április', 'május', 'június',
+            'július', 'augusztus', 'szeptember', 'október', 'november', 'december'
+        ];
+
+        // Hét napjai hétfőtől vasárnapig (0 = Hétfő ... 6 = Vasárnap)
+        const HUNGARIAN_WEEKDAYS_MON = [
+            'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat', 'Vasárnap'
+        ];
+
+        // Alkalmazás állapot
+        let appState = {
+            goals: [],
+            activeGoalId: null,
+            activeView: 'daily', // 'daily' | 'weekly' | 'monthly'
+            theme: 'dark'        // 'dark' | 'light'
+        };
+
+        const todayObj = new Date();
+        let currentYear = todayObj.getFullYear();
+        let currentMonth = todayObj.getMonth();
+        let selectedDateKey = formatDateKey(todayObj.getFullYear(), todayObj.getMonth(), todayObj.getDate());
+        let editingGoalId = null;
+        let modalFrequency = 'daily';
+        let confirmCallback = null;
+        let autoCertTimer = null;
+
+        // --- DÁTUM SEGÉDFÜGGVÉNYEK ---
+        function formatDateKey(year, monthIndex, day) {
+            const m = String(monthIndex + 1).padStart(2, '0');
+            const d = String(day).padStart(2, '0');
+            return `${year}-${m}-${d}`;
+        }
+
+        function parseDateKey(dateKey) {
+            const [y, m, d] = dateKey.split('-').map(Number);
+            return new Date(y, m - 1, d);
+        }
+
+        function formatDateHu(dateKey) {
+            const d = parseDateKey(dateKey);
+            return `${d.getFullYear()}. ${HUNGARIAN_MONTHS[d.getMonth()]} ${d.getDate()}.`;
+        }
+
+        function getTodayDateKey() {
+            const now = new Date();
+            return formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
+        }
+
+        function isFutureDate(dateKey) {
+            return dateKey > getTodayDateKey();
+        }
+
+        function isDateInGoalRange(dateKey, goal) {
+            if (goal.startDate && dateKey < goal.startDate) return false;
+            if (goal.endDate && dateKey > goal.endDate) return false;
+            return true;
+        }
+
+        // --- ADATOK BETÖLTÉSE ÉS MENTÉSE ---
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && Array.isArray(parsed.goals) && parsed.goals.length > 0) {
+                        appState = parsed;
+                        appState.goals.forEach(g => {
+                            if (!g.records) g.records = {};
+                            if (!g.reflections) g.reflections = {};
+                            if (!g.frequency) g.frequency = 'daily';
+                            if (!g.weeklyTarget) g.weeklyTarget = 3;
+                            if (!g.monthlyTarget) g.monthlyTarget = 12;
+                            if (!g.startDate) g.startDate = formatDateKey(todayObj.getFullYear(), todayObj.getMonth(), 1);
+                            if (!g.endDate) g.endDate = formatDateKey(todayObj.getFullYear(), todayObj.getMonth(), new Date(todayObj.getFullYear(), todayObj.getMonth() + 1, 0).getDate());
+                        });
+                        if (!appState.activeGoalId || !appState.goals.some(g => g.id === appState.activeGoalId)) {
+                            appState.activeGoalId = appState.goals[0].id;
+                        }
+                        if (!appState.activeView) appState.activeView = 'daily';
+                        if (!appState.theme) appState.theme = 'dark';
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Hiba a mentett adatok betöltésekor:', e);
+            }
+
+            // Alapértelmezett példa cél létrehozása első indításkor
+            const y = todayObj.getFullYear();
+            const m = todayObj.getMonth();
+            const defaultStart = formatDateKey(y, m, 1);
+            const defaultEnd = formatDateKey(y, m, new Date(y, m + 1, 0).getDate());
+
+            appState = {
+                goals: [
+                    {
+                        id: 'goal_' + Date.now(),
+                        title: 'Napi jótett és rendrakás',
+                        description: 'Minden nap tudatosan figyelek arra, hogy segítsek másoknak és rendben tartsam a környezetemet.',
+                        frequency: 'daily',
+                        weeklyTarget: 3,
+                        monthlyTarget: 15,
+                        startDate: defaultStart,
+                        endDate: defaultEnd,
+                        records: {},
+                        reflections: {}
+                    }
+                ],
+                activeGoalId: null,
+                activeView: 'daily',
+                theme: 'dark'
+            };
+            appState.activeGoalId = appState.goals[0].id;
+            saveState();
+        }
+
+        // --- BEÁLLÍTÁSOK ÉS TÉMA VÁLTÁS (VILÁGOS / SÖTÉT MÓD) ---
+        function toggleSettingsMenu(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('settingsDropdown');
+            menu.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('settingsDropdown');
+            const btn = document.getElementById('settingsToggleBtn');
+            if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        function applyTheme(themeName) {
+            const isLight = themeName === 'light';
+            document.body.classList.toggle('theme-light', isLight);
+
+            const darkBg = document.getElementById('scenicBgDark');
+            const lightBg = document.getElementById('scenicBgLight');
+            if (darkBg && lightBg) {
+                darkBg.style.opacity = isLight ? '0' : '1';
+                lightBg.style.opacity = isLight ? '1' : '0';
+            }
+
+            const btnLight = document.getElementById('themeBtnLight');
+            const btnDark = document.getElementById('themeBtnDark');
+            const chkLight = document.getElementById('themeCheckLight');
+            const chkDark = document.getElementById('themeCheckDark');
+
+            if (btnLight && btnDark) {
+                if (isLight) {
+                    btnLight.className = 'w-full px-3 py-2 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-950 text-left text-xs sm:text-sm font-bold flex items-center justify-between transition';
+                    btnDark.className = 'w-full px-3 py-2 rounded-xl border border-scout-sand bg-white/70 text-stone-700 hover:bg-stone-100 text-left text-xs sm:text-sm font-semibold flex items-center justify-between transition';
+                    chkLight.classList.remove('hidden');
+                    chkDark.classList.add('hidden');
+                } else {
+                    btnDark.className = 'w-full px-3 py-2 rounded-xl border-2 border-emerald-400 bg-scout-mint text-emerald-200 text-left text-xs sm:text-sm font-bold flex items-center justify-between transition';
+                    btnLight.className = 'w-full px-3 py-2 rounded-xl border border-scout-sand bg-[#12242E] text-scout-bark hover:bg-[#193240] text-left text-xs sm:text-sm font-semibold flex items-center justify-between transition';
+                    chkDark.classList.remove('hidden');
+                    chkLight.classList.add('hidden');
+                }
+            }
+        }
+
+        function setTheme(themeName) {
+            appState.theme = themeName;
+            saveState();
+            applyTheme(themeName);
+            const menu = document.getElementById('settingsDropdown');
+            if (menu) {
+                menu.classList.add('hidden');
+            }
+            showToast(themeName === 'light' ? 'Világos színpaletta bekapcsolva.' : 'Sötét színpaletta bekapcsolva.');
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } catch (e) {
+                console.error('Hiba az adatok mentésekor:', e);
+            }
+        }
+
+        function getActiveGoal() {
+            return appState.goals.find(g => g.id === appState.activeGoalId) || appState.goals[0];
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastNotification');
+            const msgEl = document.getElementById('toastMessage');
+            msgEl.textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2400);
+        }
+
+        // --- CÉLOK KEZELÉSE ---
+        function renderGoalsHeader() {
+            const container = document.getElementById('goalTabsContainer');
+            container.innerHTML = '';
+
+            appState.goals.forEach(goal => {
+                const isActive = goal.id === appState.activeGoalId;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => {
+                    appState.activeGoalId = goal.id;
+                    saveState();
+                    renderAll();
+                };
+                btn.className = isActive
+                    ? 'px-3.5 py-2 rounded-2xl bg-scout-pine text-scout-forest text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-1.5 border border-emerald-400/40'
+                    : 'px-3.5 py-2 rounded-2xl bg-[#132630]/90 hover:bg-[#1C3644] text-scout-bark border border-scout-sand text-xs sm:text-sm font-semibold transition flex items-center gap-1.5';
+
+                const completedMark = isGoalCompleted(goal) ? `<span class="text-scout-ochre" title="Teljesített cél">★</span>` : '';
+                btn.innerHTML = `${completedMark}<span>${escapeHtml(goal.title)}</span>`;
+                container.appendChild(btn);
+            });
+
+            const activeGoal = getActiveGoal();
+            document.getElementById('activeGoalTitle').textContent = activeGoal.title;
+            document.getElementById('activeGoalDescription').textContent = activeGoal.description || 'Nincs megadva külön leírás ehhez a vállaláshoz.';
+
+            const freqBadge = document.getElementById('activeGoalFrequencyBadge');
+            if (activeGoal.frequency === 'weekly') {
+                freqBadge.textContent = `Heti cél (${activeGoal.weeklyTarget} alkalom / hét)`;
+            } else if (activeGoal.frequency === 'monthly') {
+                freqBadge.textContent = `Havi cél (${activeGoal.monthlyTarget} alkalom / hónap)`;
+            } else {
+                freqBadge.textContent = 'Napi cél';
+            }
+
+            document.getElementById('activeGoalPeriodBadge').textContent = `${activeGoal.startDate} – ${activeGoal.endDate}`;
+
+            // Törlés gomb csak ha több mint 1 cél van
+            const delBtn = document.getElementById('deleteGoalBtn');
+            delBtn.style.display = appState.goals.length > 1 ? 'flex' : 'none';
+
+            // Oklevél gomb csak akkor érhető el, ha a vállalás utolsó napjára be van írva valamilyen érték!
+            const certBtn = document.getElementById('openCertificateBtn');
+            if (isGoalCompleted(activeGoal)) {
+                certBtn.classList.remove('hidden');
+                certBtn.classList.add('flex');
+            } else {
+                certBtn.classList.add('hidden');
+                certBtn.classList.remove('flex');
+            }
+        }
+
+        function isGoalCompleted(goal) {
+            if (!goal || !goal.endDate) return false;
+            const endStatus = goal.records[goal.endDate];
+            return endStatus === 'success' || endStatus === 'fail';
+        }
+
+        function openNewGoalModal() {
+            editingGoalId = null;
+            document.getElementById('goalModalHeading').textContent = 'Új önnevelési cél kitűzése';
+            document.getElementById('goalTitleInput').value = '';
+            document.getElementById('goalDescInput').value = '';
+
+            const y = currentYear;
+            const m = currentMonth;
+            document.getElementById('goalStartDateInput').value = formatDateKey(y, m, 1);
+            document.getElementById('goalEndDateInput').value = formatDateKey(y, m, new Date(y, m + 1, 0).getDate());
+
+            document.getElementById('weeklyTargetInput').value = 3;
+            document.getElementById('weeklyTargetValueLabel').textContent = '3 alkalom / hét';
+            document.getElementById('monthlyTargetInput').value = 12;
+            document.getElementById('monthlyTargetValueLabel').textContent = '12 alkalom / hónap';
+
+            selectModalFrequency('daily');
+            const modal = document.getElementById('goalModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openEditGoalModal() {
+            const goal = getActiveGoal();
+            editingGoalId = goal.id;
+            document.getElementById('goalModalHeading').textContent = 'Önnevelési cél szerkesztése';
+            document.getElementById('goalTitleInput').value = goal.title;
+            document.getElementById('goalDescInput').value = goal.description || '';
+            document.getElementById('goalStartDateInput').value = goal.startDate;
+            document.getElementById('goalEndDateInput').value = goal.endDate;
+
+            document.getElementById('weeklyTargetInput').value = goal.weeklyTarget || 3;
+            document.getElementById('weeklyTargetValueLabel').textContent = `${goal.weeklyTarget || 3} alkalom / hét`;
+            document.getElementById('monthlyTargetInput').value = goal.monthlyTarget || 12;
+            document.getElementById('monthlyTargetValueLabel').textContent = `${goal.monthlyTarget || 12} alkalom / hónap`;
+
+            selectModalFrequency(goal.frequency || 'daily');
+            const modal = document.getElementById('goalModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeGoalModal() {
+            const modal = document.getElementById('goalModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function selectModalFrequency(freq) {
+            modalFrequency = freq;
+            document.querySelectorAll('.freq-option-btn').forEach(btn => {
+                if (btn.dataset.freq === freq) {
+                    btn.className = 'freq-option-btn py-2.5 px-3 rounded-xl border-2 border-emerald-400 bg-scout-mint text-emerald-200 text-xs sm:text-sm font-bold transition';
+                } else {
+                    btn.className = 'freq-option-btn py-2.5 px-3 rounded-xl border border-scout-sand bg-[#12242E] text-scout-bark hover:bg-[#193240] text-xs sm:text-sm font-semibold transition';
+                }
+            });
+
+            document.getElementById('weeklyTargetField').classList.toggle('hidden', freq !== 'weekly');
+            document.getElementById('monthlyTargetField').classList.toggle('hidden', freq !== 'monthly');
+        }
+
+        function handleSaveGoal(event) {
+            event.preventDefault();
+            const title = document.getElementById('goalTitleInput').value.trim();
+            const description = document.getElementById('goalDescInput').value.trim();
+            let startDate = document.getElementById('goalStartDateInput').value;
+            let endDate = document.getElementById('goalEndDateInput').value;
+            const weeklyTarget = parseInt(document.getElementById('weeklyTargetInput').value, 10) || 3;
+            const monthlyTarget = parseInt(document.getElementById('monthlyTargetInput').value, 10) || 12;
+
+            if (!title || !startDate || !endDate) return;
+            if (endDate < startDate) {
+                const temp = startDate;
+                startDate = endDate;
+                endDate = temp;
+            }
+
+            if (editingGoalId) {
+                const goal = appState.goals.find(g => g.id === editingGoalId);
+                if (goal) {
+                    goal.title = title;
+                    goal.description = description;
+                    goal.frequency = modalFrequency;
+                    goal.weeklyTarget = weeklyTarget;
+                    goal.monthlyTarget = monthlyTarget;
+                    goal.startDate = startDate;
+                    goal.endDate = endDate;
+                }
+                showToast('Cél frissítve!');
+            } else {
+                const newGoal = {
+                    id: 'goal_' + Date.now(),
+                    title,
+                    description,
+                    frequency: modalFrequency,
+                    weeklyTarget,
+                    monthlyTarget,
+                    startDate,
+                    endDate,
+                    records: {},
+                    reflections: {}
+                };
+                appState.goals.push(newGoal);
+                appState.activeGoalId = newGoal.id;
+                const startObj = parseDateKey(startDate);
+                currentYear = startObj.getFullYear();
+                currentMonth = startObj.getMonth();
+                selectedDateKey = startDate;
+                showToast('Új önnevelési cél létrehozva!');
+            }
+
+            saveState();
+            closeGoalModal();
+            renderAll();
+        }
+
+        function confirmDeleteCurrentGoal() {
+            if (appState.goals.length <= 1) return;
+            const goal = getActiveGoal();
+            openConfirmModal(
+                'Cél törlése',
+                `Biztosan törölni szeretnéd a(z) „${goal.title}” önnevelési célt és minden hozzá tartozó bejegyzést?`,
+                () => {
+                    appState.goals = appState.goals.filter(g => g.id !== goal.id);
+                    appState.activeGoalId = appState.goals[0].id;
+                    saveState();
+                    renderAll();
+                    showToast('Cél törölve.');
+                }
+            );
+        }
+
+        // --- NÉZETEK ÉS NAVIGÁCIÓ ---
+        function switchView(viewName) {
+            appState.activeView = viewName;
+            saveState();
+            renderViewTabs();
+            renderActiveView();
+            renderStatistics();
+        }
+
+        function renderViewTabs() {
+            document.querySelectorAll('.view-tab').forEach(btn => {
+                if (btn.dataset.view === appState.activeView) {
+                    btn.className = 'view-tab px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-scout-pine text-scout-forest shadow-xs transition border border-emerald-400/30';
+                } else {
+                    btn.className = 'view-tab px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-scout-bark hover:text-scout-forest transition';
+                }
+            });
+        }
+
+        function navigatePeriod(delta) {
+            if (appState.activeView === 'monthly') {
+                currentYear += delta;
+            } else {
+                currentMonth += delta;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                } else if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+            }
+            renderAll();
+        }
+
+        function goToToday() {
+            const now = new Date();
+            currentYear = now.getFullYear();
+            currentMonth = now.getMonth();
+            selectedDateKey = formatDateKey(currentYear, currentMonth, now.getDate());
+            renderAll();
+        }
+
+        function renderActiveView() {
+            const periodLabel = document.getElementById('currentPeriodLabel');
+            const dailyCont = document.getElementById('dailyViewContainer');
+            const weeklyCont = document.getElementById('weeklyViewContainer');
+            const monthlyCont = document.getElementById('monthlyViewContainer');
+
+            dailyCont.classList.add('hidden');
+            weeklyCont.classList.add('hidden');
+            monthlyCont.classList.add('hidden');
+
+            if (appState.activeView === 'weekly') {
+                periodLabel.textContent = `${currentYear}. ${HUNGARIAN_MONTHS[currentMonth]}`;
+                weeklyCont.classList.remove('hidden');
+                renderWeeklyView();
+            } else if (appState.activeView === 'monthly') {
+                periodLabel.textContent = `${currentYear}. év`;
+                monthlyCont.classList.remove('hidden');
+                renderMonthlyView();
+            } else {
+                periodLabel.textContent = `${currentYear}. ${HUNGARIAN_MONTHS[currentMonth]}`;
+                dailyCont.classList.remove('hidden');
+                renderDailyCalendar();
+            }
+        }
+
+        // --- ZÖLD FALEVELES ÉS HÁRSLEVÉL VÍZJELES DÍSZÍTÉSEK ---
+        function createCornerLeafDecoration(seed, isFilledCard) {
+            const hash = Math.abs((seed * 2654435761) ^ (seed >> 4));
+            const leafSvg = FOREST_LEAF_SVGS[hash % FOREST_LEAF_SVGS.length];
+            const angle = (hash % 360) - 180;
+            // Mindegyik levél zöld színű és a bal felső sarokba illeszkedik
+            const colorClass = isFilledCard
+                ? 'text-emerald-200'
+                : (hash % 2 === 0 ? 'text-scout-forest' : 'text-scout-pine');
+
+            const span = document.createElement('span');
+            span.className = `absolute -top-2.5 -left-2.5 w-6 h-6 sm:w-7 sm:h-7 pointer-events-none z-20 ${colorClass}`;
+            span.style.transform = `rotate(${angle}deg)`;
+            span.innerHTML = leafSvg;
+            return span;
+        }
+
+        // A naptár négyzet belsejét szinte teljesen kitöltő halvány hárslevél körvonal levélerekkel
+        function createLindenWatermarkSVG(isFilledCard) {
+            const strokeColor = isFilledCard ? 'rgba(234, 227, 210, 0.24)' : 'rgba(110, 231, 183, 0.16)';
+            const fillColor = isFilledCard ? 'rgba(234, 227, 210, 0.05)' : 'rgba(42, 111, 91, 0.08)';
+            return `
+                <svg viewBox="0 0 100 100" class="w-[88%] h-[88%] pointer-events-none select-none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <!-- Szív alakú hárslevél körvonal + levélnyél -->
+                    <path d="M50 8 C35 26, 12 36, 12 60 C12 78, 28 89, 48 84 L48 96 L52 96 L52 84 C72 89, 88 78, 88 60 C88 36, 65 26, 50 8 Z"
+                        fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.8" stroke-linejoin="round" />
+                    <!-- Főér és oldalirányú levélerek -->
+                    <path d="M50 14 L50 84" stroke="${strokeColor}" stroke-width="1.4" stroke-linecap="round" />
+                    <path d="M50 32 L32 24" stroke="${strokeColor}" stroke-width="1.1" stroke-linecap="round" />
+                    <path d="M50 34 L68 26" stroke="${strokeColor}" stroke-width="1.1" stroke-linecap="round" />
+                    <path d="M50 48 L22 39" stroke="${strokeColor}" stroke-width="1.1" stroke-linecap="round" />
+                    <path d="M50 50 L78 41" stroke="${strokeColor}" stroke-width="1.1" stroke-linecap="round" />
+                    <path d="M50 64 L20 57" stroke="${strokeColor}" stroke-width="1.1" stroke-linecap="round" />
+                    <path d="M50 66 L80 59" stroke="${strokeColor}" stroke-width="1.1" stroke-linecap="round" />
+                    <path d="M50 77 L29 74" stroke="${strokeColor}" stroke-width="1" stroke-linecap="round" />
+                    <path d="M50 78 L71 75" stroke="${strokeColor}" stroke-width="1" stroke-linecap="round" />
+                </svg>
+            `;
+        }
+
+        // --- 1. NAPI NAPTÁR KIRAJZOLÁSA ---
+        function renderDailyCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const goal = getActiveGoal();
+            const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+            const startOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const todayStr = getTodayDateKey();
+
+            for (let i = 0; i < startOffset; i++) {
+                const emptySlot = document.createElement('div');
+                emptySlot.className = 'aspect-square rounded-2xl bg-[#0D1E26]/45';
+                grid.appendChild(emptySlot);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = formatDateKey(currentYear, currentMonth, day);
+                const status = goal.records[dateKey] || 'empty';
+                const inRange = isDateInGoalRange(dateKey, goal);
+                const isFuture = isFutureDate(dateKey);
+                const isToday = (dateKey === todayStr);
+                const isSelected = (dateKey === selectedDateKey);
+                const hasReflection = Boolean(goal.reflections && goal.reflections[dateKey] && goal.reflections[dateKey].trim().length > 0);
+                const isFilledCard = (status === 'success' || status === 'fail');
+
+                const cell = document.createElement('button');
+                cell.type = 'button';
+                cell.dataset.date = dateKey;
+
+                let baseClasses = 'aspect-square rounded-2xl flex flex-col items-center justify-center relative select-none transition-all duration-200 focus:outline-none overflow-hidden ';
+                
+                if (!inRange) {
+                    baseClasses += 'bg-[#0E1E26]/55 text-scout-bark/45 border border-dashed border-scout-sand/60 opacity-65 cursor-default ';
+                } else if (isFuture) {
+                    baseClasses += 'bg-[#10232C]/70 text-scout-bark/60 border border-scout-sand/75 opacity-85 cursor-not-allowed ';
+                } else if (status === 'success') {
+                    baseClasses += 'bg-scout-leaf hover:bg-scout-pine text-scout-forest shadow-md border-2 border-emerald-300/40 cursor-pointer ';
+                } else if (status === 'fail') {
+                    baseClasses += 'bg-scout-brick hover:bg-red-800 text-scout-forest shadow-md border-2 border-rose-300/35 cursor-pointer ';
+                } else {
+                    baseClasses += 'bg-[#132934]/85 hover:bg-[#1A3745] text-scout-forest border border-scout-sand cursor-pointer ';
+                }
+
+                if (isSelected && isToday) {
+                    baseClasses += 'ring-3 ring-scout-ochre ring-offset-2 ring-offset-[#0E1D25]';
+                } else if (isSelected) {
+                    baseClasses += 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-[#0E1D25]';
+                } else if (isToday) {
+                    baseClasses += 'ring-2 ring-scout-ochre ring-offset-1 ring-offset-[#0E1D25]';
+                }
+
+                cell.className = baseClasses;
+
+                // Teljes négyzetet szinte kitöltő halvány hárslevél körvonal erekkel a szám mögött
+                const lindenBg = document.createElement('div');
+                lindenBg.className = 'absolute inset-0 flex items-center justify-center pointer-events-none z-0';
+                lindenBg.innerHTML = createLindenWatermarkSVG(isFilledCard);
+                cell.appendChild(lindenBg);
+
+                if (hasReflection) {
+                    const noteBadge = document.createElement('span');
+                    noteBadge.title = 'Van önreflexió ehhez a naphoz';
+                    noteBadge.className = `absolute top-1.5 right-1.5 z-20 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shadow-2xs ${status === 'empty' ? 'bg-[#2E2218] text-scout-ochre border border-amber-500/40' : 'bg-black/25 text-scout-forest'}`;
+                    noteBadge.innerHTML = '✎';
+                    cell.appendChild(noteBadge);
+                }
+
+                // Nagyobb dátumszám, amely a hárslevél körvonalán belül marad
+                const dayNumberSpan = document.createElement('span');
+                dayNumberSpan.className = 'relative z-10 text-lg sm:text-xl md:text-2xl font-extrabold leading-none tracking-tight mt-1';
+                dayNumberSpan.textContent = day;
+                cell.appendChild(dayNumberSpan);
+
+                const iconWrapper = document.createElement('span');
+                iconWrapper.className = 'relative z-10 mt-0.5 h-3.5 flex items-center justify-center';
+                
+                if (!inRange) {
+                    iconWrapper.innerHTML = `<span class="text-[8px] uppercase tracking-tighter text-scout-bark/55 font-semibold">Kívül</span>`;
+                } else if (isFuture) {
+                    iconWrapper.innerHTML = `<svg class="w-3 h-3 text-scout-bark/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>`;
+                } else if (status === 'success') {
+                    iconWrapper.innerHTML = `<svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>`;
+                } else if (status === 'fail') {
+                    iconWrapper.innerHTML = `<svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>`;
+                } else if (isToday) {
+                    iconWrapper.innerHTML = `<span class="text-[8px] uppercase tracking-wider font-extrabold text-scout-ochre">Ma</span>`;
+                } else {
+                    iconWrapper.innerHTML = ``;
+                }
+                cell.appendChild(iconWrapper);
+
+                cell.addEventListener('click', () => handleDayClick(dateKey));
+                grid.appendChild(cell);
+            }
+        }
+
+        function handleDayClick(dateKey) {
+            selectedDateKey = dateKey;
+            const goal = getActiveGoal();
+
+            if (!isDateInGoalRange(dateKey, goal)) {
+                renderReflectionPanel();
+                renderDailyCalendar();
+                showToast('Ez a nap a vállalás időtartamán kívül esik.');
+                return;
+            }
+
+            if (isFutureDate(dateKey)) {
+                renderReflectionPanel();
+                renderDailyCalendar();
+                showToast('Jövőbeli napra nem lehet előre eredményt beírni.');
+                return;
+            }
+
+            // Ciklikus állapotváltás: empty -> success -> fail -> empty
+            const currentStatus = goal.records[dateKey] || 'empty';
+            let nextStatus = 'success';
+            if (currentStatus === 'success') nextStatus = 'fail';
+            else if (currentStatus === 'fail') nextStatus = 'empty';
+
+            if (nextStatus === 'empty') {
+                delete goal.records[dateKey];
+            } else {
+                goal.records[dateKey] = nextStatus;
+            }
+
+            saveState();
+            renderAll();
+
+            // Ha a felhasználó most könyvelte el a vállalás UTOLSÓ napját, 3 másodperccel később automatikusan felugrik az oklevél!
+            if (dateKey === goal.endDate && (nextStatus === 'success' || nextStatus === 'fail')) {
+                if (autoCertTimer) clearTimeout(autoCertTimer);
+                showToast('Gratulálunk! Elérted a vállalásod végét – készül az okleveled...');
+                autoCertTimer = setTimeout(() => {
+                    if (isGoalCompleted(getActiveGoal())) {
+                        openCertificateModal(false);
+                    }
+                }, 3000);
+            }
+        }
+
+        function setSelectedDayStatus(newStatus) {
+            const goal = getActiveGoal();
+            if (!isDateInGoalRange(selectedDateKey, goal)) {
+                showToast('Ez a nap a vállalás időtartamán kívül esik.');
+                return;
+            }
+            if (isFutureDate(selectedDateKey)) {
+                showToast('Jövőbeli napra nem lehet előre eredményt beírni.');
+                return;
+            }
+
+            if (newStatus === 'empty') {
+                delete goal.records[selectedDateKey];
+            } else {
+                goal.records[selectedDateKey] = newStatus;
+            }
+            saveState();
+            renderAll();
+
+            if (selectedDateKey === goal.endDate && (newStatus === 'success' || newStatus === 'fail')) {
+                if (autoCertTimer) clearTimeout(autoCertTimer);
+                showToast('Gratulálunk! Elérted a vállalásod végét – készül az okleveled...');
+                autoCertTimer = setTimeout(() => {
+                    if (isGoalCompleted(getActiveGoal())) {
+                        openCertificateModal(false);
+                    }
+                }, 3000);
+            }
+        }
+
+        // --- 2. NÉZET: HÓNAP HETEI ---
+        function getWeeksOfMonth(year, month) {
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const weeks = [];
+
+            // Első hét hétfője
+            let cursor = new Date(firstDay);
+            const dayOfWeek = cursor.getDay();
+            const diffToMon = (dayOfWeek === 0) ? -6 : 1 - dayOfWeek;
+            cursor.setDate(cursor.getDate() + diffToMon);
+
+            let weekNum = 1;
+            while (cursor <= lastDay) {
+                const weekStart = new Date(cursor);
+                const weekEnd = new Date(cursor);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+
+                const days = [];
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(weekStart);
+                    d.setDate(d.getDate() + i);
+                    days.push(formatDateKey(d.getFullYear(), d.getMonth(), d.getDate()));
+                }
+
+                weeks.push({
+                    weekNumberInMonth: weekNum++,
+                    startDate: weekStart,
+                    endDate: weekEnd,
+                    days
+                });
+
+                cursor.setDate(cursor.getDate() + 7);
+            }
+            return weeks;
+        }
+
+        function evaluateWeek(week, goal) {
+            const todayStr = getTodayDateKey();
+            const inRangeDays = week.days.filter(dk => isDateInGoalRange(dk, goal));
+            if (inRangeDays.length === 0) {
+                return { state: 'out_of_range', successCount: 0, target: goal.weeklyTarget || 3 };
+            }
+
+            const successCount = inRangeDays.filter(dk => goal.records[dk] === 'success').length;
+            const target = goal.frequency === 'weekly' ? (goal.weeklyTarget || 3) : inRangeDays.length;
+            const weekEndKey = week.days[6];
+            const isFinished = weekEndKey < todayStr;
+
+            if (successCount >= target) {
+                return { state: 'success', successCount, target };
+            }
+            if (!isFinished) {
+                return { state: 'in_progress', successCount, target };
+            }
+            return { state: 'fail', successCount, target };
+        }
+
+        function renderWeeklyView() {
+            const goal = getActiveGoal();
+            const weeks = getWeeksOfMonth(currentYear, currentMonth);
+            const banner = document.getElementById('weeklyBanner');
+            const grid = document.getElementById('weeksListGrid');
+
+            banner.innerHTML = goal.frequency === 'weekly'
+                ? `<span>Heti vállalás célja: <strong class="text-emerald-300">heti ${goal.weeklyTarget} alkalom</strong>. A folyamatban lévő hetek még nem válnak pirossá.</span>`
+                : `<span>A hónap heteinek áttekintése a rögzített teljesítések alapján.</span>`;
+
+            grid.innerHTML = '';
+            weeks.forEach(week => {
+                const evalRes = evaluateWeek(week, goal);
+                let cardClasses = 'relative rounded-2xl p-4 border transition ';
+                let badgeHtml = '';
+
+                if (evalRes.state === 'out_of_range') {
+                    cardClasses += 'bg-[#0E1E26]/55 border-dashed border-scout-sand/60 opacity-65';
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-[#162C36] text-scout-bark/70">Időszakon kívül</span>`;
+                } else if (evalRes.state === 'success') {
+                    cardClasses += 'bg-scout-mint/90 border-emerald-500/45 shadow-sm';
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-scout-leaf text-scout-forest">✓ Teljesítve (${evalRes.successCount}/${evalRes.target})</span>`;
+                } else if (evalRes.state === 'fail') {
+                    cardClasses += 'bg-scout-blush/90 border-rose-500/45 shadow-sm';
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-scout-brick text-scout-forest">✕ Elmaradt (${evalRes.successCount}/${evalRes.target})</span>`;
+                } else {
+                    cardClasses += 'bg-[#132934]/85 border-scout-sand';
+                    badgeHtml = `<span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-[#2D2218] text-scout-ochre border border-amber-500/35">Folyamatban (${evalRes.successCount}/${evalRes.target})</span>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = cardClasses;
+
+                const startStr = `${week.startDate.getMonth() + 1}. ${week.startDate.getDate()}.`;
+                const endStr = `${week.endDate.getMonth() + 1}. ${week.endDate.getDate()}.`;
+
+                const dayPills = week.days.map((dk, i) => {
+                    const st = goal.records[dk] || 'empty';
+                    const dNum = parseDateKey(dk).getDate();
+                    let pillCls = 'bg-[#0F212B] border-scout-sand text-scout-bark hover:bg-[#193442]';
+                    if (st === 'success') pillCls = 'bg-scout-leaf border-emerald-400/50 text-scout-forest font-bold';
+                    else if (st === 'fail') pillCls = 'bg-scout-brick border-rose-400/50 text-scout-forest font-bold';
+                    return `<button type="button" onclick="selectDateAndGoDaily('${dk}')" class="px-2 py-1 rounded-lg border text-xs transition ${pillCls}">${HUNGARIAN_WEEKDAYS_MON[i].slice(0, 2)} ${dNum}.</button>`;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                        <div>
+                            <span class="font-serif font-bold text-scout-forest text-base">${week.weekNumberInMonth}. hét</span>
+                            <span class="text-xs text-scout-bark/80 ml-2">(${startStr} – ${endStr})</span>
+                        </div>
+                        ${badgeHtml}
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">${dayPills}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function selectDateAndGoDaily(dateKey) {
+            const d = parseDateKey(dateKey);
+            currentYear = d.getFullYear();
+            currentMonth = d.getMonth();
+            selectedDateKey = dateKey;
+            switchView('daily');
+        }
+
+        // --- 3. NÉZET: ÉV HÓNAPJAI ---
+        function evaluateMonth(year, month, goal) {
+            const todayStr = getTodayDateKey();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const monthDays = [];
+            for (let d = 1; d <= daysInMonth; d++) {
+                monthDays.push(formatDateKey(year, month, d));
+            }
+
+            const inRangeDays = monthDays.filter(dk => isDateInGoalRange(dk, goal));
+            if (inRangeDays.length === 0) {
+                return { state: 'out_of_range', successCount: 0, target: goal.monthlyTarget || 12 };
+            }
+
+            const successCount = inRangeDays.filter(dk => goal.records[dk] === 'success').length;
+            const target = goal.frequency === 'monthly' ? (goal.monthlyTarget || 12) : inRangeDays.length;
+            const monthEndKey = monthDays[monthDays.length - 1];
+            const isFinished = monthEndKey < todayStr;
+
+            if (successCount >= target) {
+                return { state: 'success', successCount, target };
+            }
+            if (!isFinished) {
+                return { state: 'in_progress', successCount, target };
+            }
+            return { state: 'fail', successCount, target };
+        }
+
+        function renderMonthlyView() {
+            const goal = getActiveGoal();
+            const banner = document.getElementById('monthlyBanner');
+            const grid = document.getElementById('monthsYearGrid');
+
+            banner.innerHTML = goal.frequency === 'monthly'
+                ? `<span>Havi vállalás célja: <strong class="text-emerald-300">havonta ${goal.monthlyTarget} alkalom</strong>. A még nem lezárult hónapok nem válnak pirossá.</span>`
+                : `<span>Az év hónapjainak összesítése. Kattints egy hónapra a napi nézethez!</span>`;
+
+            grid.innerHTML = '';
+            for (let m = 0; m < 12; m++) {
+                const evalRes = evaluateMonth(currentYear, m, goal);
+                const isFilled = evalRes.state === 'success' || evalRes.state === 'fail';
+
+                let cls = 'relative rounded-2xl p-4 border text-left transition cursor-pointer flex flex-col justify-between min-h-[105px] ';
+                let statusText = '';
+
+                if (evalRes.state === 'out_of_range') {
+                    cls += 'bg-[#0E1E26]/55 border-dashed border-scout-sand/60 text-scout-bark/50 opacity-65';
+                    statusText = 'Időszakon kívül';
+                } else if (evalRes.state === 'success') {
+                    cls += 'bg-scout-leaf text-scout-forest border-emerald-300/40 shadow-md';
+                    statusText = `✓ Teljesítve (${evalRes.successCount}/${evalRes.target})`;
+                } else if (evalRes.state === 'fail') {
+                    cls += 'bg-scout-brick text-scout-forest border-rose-300/40 shadow-md';
+                    statusText = `✕ Elmaradt (${evalRes.successCount}/${evalRes.target})`;
+                } else {
+                    cls += 'bg-[#132934]/85 hover:bg-[#1A3745] border-scout-sand text-scout-forest';
+                    statusText = `Folyamatban (${evalRes.successCount}/${evalRes.target})`;
+                }
+
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = cls;
+                card.onclick = () => {
+                    currentMonth = m;
+                    switchView('daily');
+                };
+
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'font-serif text-base sm:text-lg font-bold capitalize';
+                titleSpan.textContent = HUNGARIAN_MONTHS[m];
+
+                const subSpan = document.createElement('span');
+                subSpan.className = `text-xs font-semibold mt-2 ${isFilled ? 'text-scout-forest' : 'text-scout-bark/85'}`;
+                subSpan.textContent = statusText;
+
+                card.appendChild(titleSpan);
+                card.appendChild(subSpan);
+                grid.appendChild(card);
+            }
+        }
+
+        // --- ÖNREFLEXIÓ PANEL ---
+        function renderReflectionPanel() {
+            const goal = getActiveGoal();
+            const status = goal.records[selectedDateKey] || 'empty';
+            const inRange = isDateInGoalRange(selectedDateKey, goal);
+            const isFuture = isFutureDate(selectedDateKey);
+
+            document.getElementById('reflectionDateSubtitle').textContent = formatDateHu(selectedDateKey);
+
+            const pill = document.getElementById('reflectionStatusPill');
+            const hint = document.getElementById('reflectionPromptHint');
+            const quickActions = document.getElementById('reflectionQuickActions');
+
+            quickActions.style.opacity = (!inRange || isFuture) ? '0.45' : '1';
+            quickActions.style.pointerEvents = (!inRange || isFuture) ? 'none' : 'auto';
+
+            if (!inRange) {
+                pill.textContent = 'Időszakon kívül';
+                pill.className = 'px-2.5 py-1 rounded-xl text-xs font-bold bg-[#162C36] text-scout-bark/80 border border-scout-sand';
+                hint.textContent = 'Ez a nap kívül esik a vállalás megadott időtartamán.';
+            } else if (isFuture) {
+                pill.textContent = 'Jövőbeli nap';
+                pill.className = 'px-2.5 py-1 rounded-xl text-xs font-bold bg-[#162C36] text-scout-bark/80 border border-scout-sand';
+                hint.textContent = 'Előre tervezhetsz jegyzetet, de az eredményt majd az adott napon rögzítheted.';
+            } else if (status === 'success') {
+                pill.textContent = '✓ Sikerült';
+                pill.className = 'px-2.5 py-1 rounded-xl text-xs font-bold bg-scout-mint text-emerald-300 border border-emerald-500/35';
+                hint.textContent = 'Nagyszerű! Mi segített abban, hogy ilyen jól sikerült a mai vállalásod?';
+            } else if (status === 'fail') {
+                pill.textContent = '✕ Elmaradt';
+                pill.className = 'px-2.5 py-1 rounded-xl text-xs font-bold bg-scout-blush text-rose-300 border border-rose-500/35';
+                hint.textContent = 'Semmi gond, a tanulság a legfontosabb: mi akadályozott meg ma, és hogyan tudod holnap másképp csinálni?';
+            } else {
+                pill.textContent = 'Nincs jelölve';
+                pill.className = 'px-2.5 py-1 rounded-xl text-xs font-bold bg-[#152B36] text-scout-bark border border-scout-sand';
+                hint.textContent = 'Kattints a nap kockájára vagy a fenti gombokra az eredmény rögzítéséhez, és írd le a tapasztalataidat!';
+            }
+
+            const textarea = document.getElementById('reflectionTextarea');
+            textarea.value = (goal.reflections && goal.reflections[selectedDateKey]) ? goal.reflections[selectedDateKey] : '';
+        }
+
+        function handleReflectionInput(text) {
+            const goal = getActiveGoal();
+            if (!goal.reflections) goal.reflections = {};
+
+            if (text.trim() === '') {
+                delete goal.reflections[selectedDateKey];
+            } else {
+                goal.reflections[selectedDateKey] = text;
+            }
+            saveState();
+
+            const indicator = document.getElementById('reflectionSavedIndicator');
+            indicator.textContent = 'Mentve ✓';
+            renderDailyCalendar();
+        }
+
+        function clearCurrentReflection() {
+            const goal = getActiveGoal();
+            if (goal.reflections) {
+                delete goal.reflections[selectedDateKey];
+            }
+            document.getElementById('reflectionTextarea').value = '';
+            saveState();
+            renderDailyCalendar();
+            showToast('Önreflexió törölve.');
+        }
+
+        // --- STATISZTIKÁK SZÁMÍTÁSA (Napi, Heti, Havi célokhoz igazítva) ---
+        function computeStreaks(goal) {
+            const allKeys = Object.keys(goal.records)
+                .filter(k => isDateInGoalRange(k, goal))
+                .sort();
+
+            let bestStreak = 0;
+            let running = 0;
+            let prevDate = null;
+
+            allKeys.forEach(k => {
+                if (goal.records[k] === 'success') {
+                    const cur = parseDateKey(k);
+                    if (prevDate && Math.round((cur - prevDate) / 86400000) === 1) {
+                        running++;
+                    } else {
+                        running = 1;
+                    }
+                    if (running > bestStreak) bestStreak = running;
+                    prevDate = cur;
+                } else {
+                    running = 0;
+                    prevDate = null;
+                }
+            });
+
+            // Aktív sorozat a mai naptól visszafelé számolva
+            let currentStreak = 0;
+            const cursor = new Date();
+            while (true) {
+                const k = formatDateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+                if (!isDateInGoalRange(k, goal)) break;
+                if (goal.records[k] === 'success') {
+                    currentStreak++;
+                    cursor.setDate(cursor.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+
+            return { currentStreak, bestStreak };
+        }
+
+        function renderStatistics() {
+            const goal = getActiveGoal();
+            const titleEl = document.getElementById('statsCardTitle').querySelector('span');
+            const succLabel = document.getElementById('statSuccessLabel');
+            const failLabel = document.getElementById('statFailLabel');
+            const rateLabel = document.getElementById('statRateLabel');
+
+            let successCount = 0;
+            let failCount = 0;
+
+            if (goal.frequency === 'weekly') {
+                titleEl.textContent = `${HUNGARIAN_MONTHS[currentMonth]} – Heti statisztika`;
+                succLabel.textContent = 'Teljesített hetek';
+                failLabel.textContent = 'Elmaradt hetek';
+                rateLabel.textContent = 'Heti sikerességi arány';
+
+                const weeks = getWeeksOfMonth(currentYear, currentMonth);
+                weeks.forEach(w => {
+                    const res = evaluateWeek(w, goal);
+                    if (res.state === 'success') successCount++;
+                    else if (res.state === 'fail') failCount++;
+                });
+            } else if (goal.frequency === 'monthly') {
+                titleEl.textContent = `${currentYear}. év – Havi statisztika`;
+                succLabel.textContent = 'Teljesített hónapok';
+                failLabel.textContent = 'Elmaradt hónapok';
+                rateLabel.textContent = 'Havi sikerességi arány';
+
+                for (let m = 0; m < 12; m++) {
+                    const res = evaluateMonth(currentYear, m, goal);
+                    if (res.state === 'success') successCount++;
+                    else if (res.state === 'fail') failCount++;
+                }
+            } else {
+                titleEl.textContent = `${HUNGARIAN_MONTHS[currentMonth]} – Napi statisztika`;
+                succLabel.textContent = 'Sikerült napok';
+                failLabel.textContent = 'Elmaradt napok';
+                rateLabel.textContent = 'Napi sikerességi arány';
+
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dk = formatDateKey(currentYear, currentMonth, d);
+                    if (!isDateInGoalRange(dk, goal)) continue;
+                    if (goal.records[dk] === 'success') successCount++;
+                    else if (goal.records[dk] === 'fail') failCount++;
+                }
+            }
+
+            const totalEvaluated = successCount + failCount;
+            const rate = totalEvaluated > 0 ? Math.round((successCount / totalEvaluated) * 100) : 0;
+
+            document.getElementById('statSuccessCount').textContent = successCount;
+            document.getElementById('statFailCount').textContent = failCount;
+            document.getElementById('statSuccessRate').textContent = `${rate}%`;
+            document.getElementById('statProgressBar').style.width = `${rate}%`;
+
+            const streaks = computeStreaks(goal);
+            document.getElementById('statCurrentStreak').textContent = streaks.currentStreak;
+            document.getElementById('statBestStreak').textContent = streaks.bestStreak;
+        }
+
+        // --- TELJESÍTÉSI OKLEVÉL & LEKEREKÍTETT VÖLGYES-HEGYVONULAT DIAGRAM ---
+        function getGoalTimelineDays(goal) {
+            const start = parseDateKey(goal.startDate);
+            const end = parseDateKey(goal.endDate);
+            const days = [];
+            const cursor = new Date(start);
+            while (cursor <= end) {
+                const dk = formatDateKey(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+                days.push({
+                    dateKey: dk,
+                    status: goal.records[dk] || 'empty'
+                });
+                cursor.setDate(cursor.getDate() + 1);
+            }
+            return days;
+        }
+
+        function computeCertificateStats(goal) {
+            const days = getGoalTimelineDays(goal);
+            const streaks = computeStreaks(goal);
+
+            // Legsikeresebb nap(ok) kiszámítása a hét napjai szerint (0 = Hétfő ... 6 = Vasárnap)
+            const weekdayCounts = [0, 0, 0, 0, 0, 0, 0];
+            days.forEach(d => {
+                if (d.status === 'success') {
+                    const jsDay = parseDateKey(d.dateKey).getDay(); // 0=Vas, 1=Hét...
+                    const monIndex = (jsDay === 0) ? 6 : jsDay - 1;
+                    weekdayCounts[monIndex]++;
+                }
+            });
+
+            const maxWeekdayWins = Math.max(...weekdayCounts);
+            let bestWeekdayText = 'Még nincs teljesítés';
+            if (maxWeekdayWins > 0) {
+                const winners = [];
+                weekdayCounts.forEach((cnt, idx) => {
+                    if (cnt === maxWeekdayWins) winners.push(HUNGARIAN_WEEKDAYS_MON[idx]);
+                });
+                bestWeekdayText = winners.join(', ');
+            }
+
+            // Cél típusától függő teljesítési egységek számítása
+            let successUnits = 0;
+            let failUnits = 0;
+            let successLabel = 'Teljesített napok';
+            let failLabel = 'Elmaradt napok';
+
+            if (goal.frequency === 'weekly') {
+                successLabel = 'Teljesített hetek';
+                failLabel = 'Elmaradt hetek';
+                const start = parseDateKey(goal.startDate);
+                const end = parseDateKey(goal.endDate);
+                const seenMonths = new Set();
+                const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+                while (cur <= end) {
+                    const key = `${cur.getFullYear()}-${cur.getMonth()}`;
+                    if (!seenMonths.has(key)) {
+                        seenMonths.add(key);
+                        getWeeksOfMonth(cur.getFullYear(), cur.getMonth()).forEach(w => {
+                            const res = evaluateWeek(w, goal);
+                            if (res.state === 'success') successUnits++;
+                            else if (res.state === 'fail') failUnits++;
+                        });
+                    }
+                    cur.setMonth(cur.getMonth() + 1);
+                }
+            } else if (goal.frequency === 'monthly') {
+                successLabel = 'Teljesített hónapok';
+                failLabel = 'Elmaradt hónapok';
+                const start = parseDateKey(goal.startDate);
+                const end = parseDateKey(goal.endDate);
+                const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+                while (cur <= end) {
+                    const res = evaluateMonth(cur.getFullYear(), cur.getMonth(), goal);
+                    if (res.state === 'success') successUnits++;
+                    else if (res.state === 'fail') failUnits++;
+                    cur.setMonth(cur.getMonth() + 1);
+                }
+            } else {
+                days.forEach(d => {
+                    if (d.status === 'success') successUnits++;
+                    else if (d.status === 'fail') failUnits++;
+                });
+            }
+
+            // Hanyadik teljesített cél ez a sorban
+            const completedGoals = appState.goals.filter(g => isGoalCompleted(g));
+            const idx = completedGoals.findIndex(g => g.id === goal.id);
+            const ordinal = idx >= 0 ? idx + 1 : 1;
+
+            return {
+                days,
+                bestStreak: streaks.bestStreak,
+                successUnits,
+                failUnits,
+                successLabel,
+                failLabel,
+                bestWeekdayText,
+                ordinal
+            };
+        }
+
+        // Feszített, meredek csúcsú és lapos völgyű görbe generálása (csak enyhén kerekített csúcsokkal)
+        function buildSmoothCurvePath(points, zeroLineY, maxY) {
+            if (!points || points.length === 0) return '';
+            if (points.length === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+
+            let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+
+            for (let i = 0; i < points.length - 1; i++) {
+                const p0 = i > 0 ? points[i - 1] : points[i];
+                const p1 = points[i];
+                const p2 = points[i + 1];
+                const p3 = i + 2 < points.length ? points[i + 2] : p2;
+
+                // Kis feszítettség a csúcsoknál (egészen kicsi lekerekítés) és lapos átmenet a nulla vonalnál / völgyeknél
+                const isPeak1 = p1.type === 'peak';
+                const isPeak2 = p2.type === 'peak';
+                const t1 = isPeak1 ? 0.08 : 0.22;
+                const t2 = isPeak2 ? 0.08 : 0.22;
+
+                const cp1x = p1.x + (p2.x - p0.x) * t1;
+                let cp1y = p1.y + (p2.y - p0.y) * t1;
+                const cp2x = p2.x - (p3.x - p1.x) * t2;
+                let cp2y = p2.y - (p3.y - p1.y) * t2;
+
+                // Ha a pont a nulla vonalon vagy a szélén fekszik, simuljon laposan a nulla értékhez
+                if (p1.type === 'edge' || p1.type === 'zero') {
+                    cp1y = p1.y;
+                }
+                if (p2.type === 'edge' || p2.type === 'zero') {
+                    cp2y = p2.y;
+                }
+
+                // Ne lógjon ki az alap idővonal alá
+                cp1y = Math.min(maxY - 2, cp1y);
+                cp2y = Math.min(maxY - 2, cp2y);
+
+                d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+            }
+            return d;
+        }
+
+        function buildStreakMountainSVG(days) {
+            const width = 760;
+            const height = 175;
+            const padLeft = 14;
+            const padRight = 14;
+            const padTop = 18;
+            const baseY = 148;          // Alap idővonal
+            const zeroLineY = 126;      // Nulla érték az alap idővonal fölött
+            const maxPeakHeight = zeroLineY - padTop;
+
+            const n = days.length;
+            if (n === 0) return '';
+
+            // Egymás utáni teljesítési sorozatok keresése
+            let maxRunLen = 0;
+            const runs = [];
+            let i = 0;
+            while (i < n) {
+                if (days[i].status === 'success') {
+                    let j = i;
+                    while (j < n && days[j].status === 'success') j++;
+                    const len = j - i;
+                    runs.push({ start: i, end: j - 1, len });
+                    if (len > maxRunLen) maxRunLen = len;
+                    i = j;
+                } else {
+                    i++;
+                }
+            }
+
+            const plotWidth = width - padLeft - padRight;
+            const stepX = n > 1 ? plotWidth / (n - 1) : 0;
+            const scaleRef = Math.max(maxRunLen, 2);
+
+            // Domb csúcsok és pontok összeállítása:
+            // - A dombok meredeken kicsúcsosodnak (egy élesebb fő csúccsal a sorozat közepén, csak minimálisan lekerekítve)
+            // - A völgyek laposak
+            // - A diagram két széle simul a nulla értékhez, mintha tovább folytatódna
+            const points = [];
+            const peakCoords = [];
+
+            // Bal szél indulása simán a nulla értékről
+            points.push({ x: padLeft, y: zeroLineY, type: 'edge' });
+
+            if (runs.length === 0) {
+                points.push({ x: width - padRight, y: zeroLineY, type: 'edge' });
+            } else if (n === 1) {
+                const cx = width / 2;
+                const peakH = maxPeakHeight * 0.55;
+                points.push({ x: cx - 55, y: zeroLineY, type: 'zero' });
+                points.push({ x: cx, y: zeroLineY - peakH, type: 'peak' });
+                peakCoords.push({ x: cx, y: zeroLineY - peakH });
+                points.push({ x: cx + 55, y: zeroLineY, type: 'zero' });
+                points.push({ x: width - padRight, y: zeroLineY, type: 'edge' });
+            } else {
+                runs.forEach((run, rIdx) => {
+                    const peakRatio = Math.min(1, 0.36 + 0.64 * (run.len / scaleRef));
+                    const runPeak = maxPeakHeight * peakRatio;
+
+                    // A sorozat belépő (nulla), középcsúcs és kilépő (nulla) X koordinátái
+                    const startX = padLeft + Math.max(0.15, run.start - 0.45) * stepX;
+                    const endX = padLeft + Math.min(n - 1.15, run.end + 0.45) * stepX;
+                    const midX = (startX + endX) / 2;
+
+                    // Ha két domb között van egy korábbi domb, tegyünk egy lapos völgyet közéjük
+                    if (rIdx > 0) {
+                        const prevPoint = points[points.length - 1];
+                        const gapWidth = startX - prevPoint.x;
+                        if (gapWidth > 8) {
+                            const valleyMidX = (prevPoint.x + startX) / 2;
+                            // Lapos völgy (csak egészen enyhén, 4-7 px-nyit süllyed a nulla szint alá)
+                            const flatValleyY = Math.min(baseY - 6, zeroLineY + 5);
+                            const q1X = prevPoint.x + gapWidth * 0.28;
+                            const q2X = prevPoint.x + gapWidth * 0.72;
+                            points.push({ x: q1X, y: flatValleyY, type: 'zero' });
+                            points.push({ x: valleyMidX, y: flatValleyY, type: 'zero' });
+                            points.push({ x: q2X, y: flatValleyY, type: 'zero' });
+                        }
+                    }
+
+                    // Domb lábazata (simán indul a nulla értékről)
+                    if (startX > padLeft + 4) {
+                        points.push({ x: startX, y: zeroLineY, type: 'zero' });
+                    }
+
+                    // Meredeken felívelő domboldal + kicsúcsosodó tető
+                    const peakY = zeroLineY - runPeak;
+                    points.push({ x: midX, y: peakY, type: 'peak' });
+                    peakCoords.push({ x: midX, y: peakY });
+
+                    // Domb túloldali lábazata (visszasimul a nulla értékhez)
+                    if (endX < width - padRight - 4) {
+                        points.push({ x: endX, y: zeroLineY, type: 'zero' });
+                    }
+                });
+
+                // Jobb szél kifutása simán a nulla értéken, mintha tovább folytatódna
+                points.push({ x: width - padRight, y: zeroLineY, type: 'edge' });
+            }
+
+            const linePath = buildSmoothCurvePath(points, zeroLineY, baseY);
+            const firstX = points[0].x.toFixed(1);
+            const lastX = points[points.length - 1].x.toFixed(1);
+            const areaPath = `${linePath} L ${lastX} ${baseY} L ${firstX} ${baseY} Z`;
+
+            // Csúcsok megjelölése diszkrét erdőzöld ponttal
+            const dotsSvg = peakCoords.map(pt =>
+                `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.2" fill="#1B4332" stroke="#D8F3DC" stroke-width="1.3" />`
+            ).join('');
+
+            return `
+                <svg viewBox="0 0 ${width} ${height}" class="w-full h-36 sm:h-44 block" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="scoutStreakGreenGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#2D6A4F" stop-opacity="0.72" />
+                            <stop offset="55%" stop-color="#40916C" stop-opacity="0.32" />
+                            <stop offset="100%" stop-color="#40916C" stop-opacity="0.02" />
+                        </linearGradient>
+                    </defs>
+
+                    <line x1="${padLeft}" y1="${padTop + maxPeakHeight * 0.25}" x2="${width - padRight}" y2="${padTop + maxPeakHeight * 0.25}" stroke="#E6DEC8" stroke-dasharray="4 4" stroke-width="1" />
+                    <line x1="${padLeft}" y1="${padTop + maxPeakHeight * 0.62}" x2="${width - padRight}" y2="${padTop + maxPeakHeight * 0.62}" stroke="#E6DEC8" stroke-dasharray="4 4" stroke-width="1" />
+                    <line x1="${padLeft}" y1="${zeroLineY}" x2="${width - padRight}" y2="${zeroLineY}" stroke="#40916C" stroke-dasharray="3 3" stroke-width="1" opacity="0.55" />
+
+                    <!-- Elhalványuló zöld terület a diagram és az alap idővonal között -->
+                    <path d="${areaPath}" fill="url(#scoutStreakGreenGrad)" />
+
+                    <!-- Alap idővonal -->
+                    <line x1="${padLeft}" y1="${baseY}" x2="${width - padRight}" y2="${baseY}" stroke="#7F5539" stroke-width="2" stroke-linecap="round" />
+
+                    <!-- Kicsúcsosodó, enyhén lekerekített zöld lelkesedés domborzat görbe -->
+                    <path d="${linePath}" fill="none" stroke="#2D6A4F" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+
+                    ${dotsSvg}
+                </svg>
+            `;
+        }
+
+        function openCertificateModal(manualOpen) {
+            const goal = getActiveGoal();
+            if (!isGoalCompleted(goal)) {
+                if (manualOpen) {
+                    showToast('Az oklevél akkor nyílik meg, ha a vállalás utolsó napját is elkönyvelted.');
+                }
+                return;
+            }
+
+            const stats = computeCertificateStats(goal);
+            const freqText = goal.frequency === 'weekly'
+                ? `Heti cél (${goal.weeklyTarget} alkalom/hét)`
+                : (goal.frequency === 'monthly' ? `Havi cél (${goal.monthlyTarget} alkalom/hónap)` : 'Napi cél');
+
+            document.getElementById('certOrdinalBadge').textContent = `${stats.ordinal}. Teljesített Önnevelési Cél`;
+            document.getElementById('certGoalTitle').textContent = goal.title;
+            document.getElementById('certGoalPeriod').textContent = `${goal.startDate} – ${goal.endDate} • ${freqText}`;
+
+            document.getElementById('certBestStreak').textContent = `${stats.bestStreak} nap`;
+            document.getElementById('certSuccessUnitLabel').textContent = stats.successLabel;
+            document.getElementById('certSuccessCount').textContent = stats.successUnits;
+            document.getElementById('certFailUnitLabel').textContent = stats.failLabel;
+            document.getElementById('certFailCount').textContent = stats.failUnits;
+            document.getElementById('certBestWeekday').textContent = stats.bestWeekdayText;
+
+            document.getElementById('certTimelineChartContainer').innerHTML = buildStreakMountainSVG(stats.days);
+            document.getElementById('certIssueDate').textContent = formatDateHu(getTodayDateKey());
+
+            const modal = document.getElementById('certificateModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCertificateModal() {
+            const modal = document.getElementById('certificateModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // --- MEGERŐSÍTŐ ABLAK, NULLÁZÁS, EXPORT / IMPORT ---
+        function openConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirmModalTitle').textContent = title;
+            document.getElementById('confirmModalMessage').textContent = message;
+            confirmCallback = onConfirm;
+
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            confirmCallback = null;
+        }
+
+        document.getElementById('confirmModalActionBtn').addEventListener('click', () => {
+            if (typeof confirmCallback === 'function') {
+                confirmCallback();
+            }
+            closeConfirmModal();
+        });
+
+        function confirmResetCurrentMonth() {
+            const goal = getActiveGoal();
+            openConfirmModal(
+                'Hónap nullázása',
+                `Biztosan törölni szeretnéd a(z) „${goal.title}” cél ${currentYear}. ${HUNGARIAN_MONTHS[currentMonth]} havi jelöléseit?`,
+                () => {
+                    const prefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-`;
+                    Object.keys(goal.records).forEach(dk => {
+                        if (dk.startsWith(prefix)) delete goal.records[dk];
+                    });
+                    saveState();
+                    renderAll();
+                    showToast('Aktuális hónap jelölései törölve.');
+                }
+            );
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(appState, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cserkesz_onneveles_${getTodayDateKey()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Mentési fájl letöltve!');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && Array.isArray(imported.goals) && imported.goals.length > 0) {
+                        appState = imported;
+                        saveState();
+                        renderAll();
+                        showToast('Adatok sikeresen betöltve!');
+                    } else {
+                        showToast('Érvénytelen mentési fájl.');
+                    }
+                } catch (err) {
+                    showToast('Hiba történt a fájl beolvasásakor.');
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function renderAll() {
+            renderGoalsHeader();
+            renderViewTabs();
+            renderActiveView();
+            renderReflectionPanel();
+            renderStatistics();
+        }
+
+        // Indítás az oldal betöltésekor
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            applyTheme(appState.theme || 'dark');
+            renderAll();
+        });
+    </script>
+</body>
+</html>
