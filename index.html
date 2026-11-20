@@ -867,6 +867,10 @@
             <div id="authErrorBox" class="hidden rounded-xl bg-rose-950/85 border border-rose-500/60 text-rose-100 px-3.5 py-2.5 text-xs sm:text-sm font-semibold">
             </div>
 
+            <div id="authCloudStatusBanner" class="rounded-xl border px-3 py-2 text-xs font-semibold flex items-center justify-between gap-2 bg-scout-cream border-scout-sand">
+                <span id="authCloudStatusText">Adatbázis kapcsolat ellenőrzése...</span>
+            </div>
+
             <!-- BEJELENTKEZÉS ŰRLAP -->
             <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
                 <div>
@@ -988,44 +992,6 @@
         let auth = null;
         let isCloudActive = false;
 
-        async function initCloudConnection() {
-            if (!activeFirebaseConfig || !activeFirebaseConfig.apiKey) {
-                updateCloudStatusUI(false);
-                return;
-            }
-            try {
-                const fbApp = initializeApp(activeFirebaseConfig);
-                auth = getAuth(fbApp);
-                db = getFirestore(fbApp);
-                if (auth) {
-                    try {
-                        await signInAnonymously(auth);
-                    } catch (authErr) {
-                        // Ha az Anonymous Auth nincs bekapcsolva, nyitott Firestore szabályokkal akkor is működik
-                        console.warn('Névtelen hitelesítés kihagyva:', authErr?.code);
-                    }
-                }
-                isCloudActive = true;
-                updateCloudStatusUI(true);
-            } catch (err) {
-                console.warn('Felhő kapcsolat nem érhető el, helyi mód aktív:', err);
-                isCloudActive = false;
-                updateCloudStatusUI(false);
-            }
-        }
-
-        function updateCloudStatusUI(cloudReady) {
-            const badgeText = document.getElementById('syncModeBadgeText');
-            const footerEl = document.getElementById('footerStatusText');
-            if (cloudReady) {
-                if (badgeText) badgeText.textContent = 'Felhő szinkron aktív';
-                if (footerEl) footerEl.textContent = 'Önnevelési Napló • Felhő szinkronizáció aktív – minden eszközödről eléred a naplódat.';
-            } else {
-                if (badgeText) badgeText.textContent = 'Helyi mód (1 eszköz)';
-                if (footerEl) footerEl.textContent = 'Önnevelési Napló • Helyi böngészős mentés aktív. Több eszközös szinkronhoz add meg a Firebase kulcsokat.';
-            }
-        }
-
         const HUNGARIAN_MONTHS = [
             'január', 'február', 'március', 'április', 'május', 'június',
             'július', 'augusztus', 'szeptember', 'október', 'november', 'december'
@@ -1034,19 +1000,36 @@
             'Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek', 'Szombat', 'Vasárnap'
         ];
 
+        const LOCAL_USERS_REGISTRY_KEY = 'onnevelesi_naplo_users_v1';
+        const LOCAL_JOURNAL_PREFIX = 'onnevelesi_naplo_journal_';
+        const LOCAL_LEADERBOARD_KEY = 'onnevelesi_naplo_leaderboard_v1';
+
         let loggedInUsername = null;
         let loggedInProfileId = null;
-        let saveDebounceTimer = null;
-        let autoCertTimer = null;
-        let confirmCallback = null;
-        let editingGoalId = null;
-        let modalFrequency = 'daily';
+        let appState = null;
 
         const nowInit = new Date();
         let currentYear = nowInit.getFullYear();
         let currentMonth = nowInit.getMonth();
         let selectedDateKey = formatDateKey(currentYear, currentMonth, nowInit.getDate());
-        let appState = createDefaultState();
+
+        let editingGoalId = null;
+        let modalFrequency = 'daily';
+        let saveDebounceTimer = null;
+        let autoCertTimer = null;
+        let confirmCallback = null;
+
+        function initGoogleSitesEmbedMode() {
+            try {
+                if (window.self !== window.top) {
+                    document.documentElement.classList.add('is-embedded');
+                    document.body.classList.add('is-embedded');
+                }
+            } catch (e) {
+                document.documentElement.classList.add('is-embedded');
+                document.body.classList.add('is-embedded');
+            }
+        }
 
         function formatDateKey(year, monthIndex, day) {
             const m = String(monthIndex + 1).padStart(2, '0');
@@ -1055,9 +1038,9 @@
         }
 
         function parseDateKey(dateKey) {
-            const [y, m, d] = String(dateKey || '').split('-').map(Number);
-            if (!y || !m || !d) return new Date();
-            return new Date(y, m - 1, d);
+            const parts = String(dateKey || '').split('-');
+            if (parts.length !== 3) return new Date();
+            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
         }
 
         function formatDateHu(dateKey) {
@@ -1067,8 +1050,8 @@
         }
 
         function getTodayDateKey() {
-            const now = new Date();
-            return formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
+            const d = new Date();
+            return formatDateKey(d.getFullYear(), d.getMonth(), d.getDate());
         }
 
         function isFutureDate(dateKey) {
@@ -1083,28 +1066,26 @@
         }
 
         function createDefaultState() {
-            const now = new Date();
-            const y = now.getFullYear();
-            const m = now.getMonth();
-            const lastDay = new Date(y, m + 1, 0).getDate();
-            const defaultGoalId = 'goal_default_1';
-
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = d.getMonth();
+            const startKey = formatDateKey(y, m, 1);
+            const endKey = formatDateKey(y, m, new Date(y, m + 1, 0).getDate());
+            const defaultGoal = {
+                id: 'goal_default_' + Date.now(),
+                title: 'Napi önnevelési vállalás',
+                description: 'Mindennapi kitartás, pontosság és jó cselekedet.',
+                frequency: 'daily',
+                weeklyTarget: 3,
+                monthlyTarget: 12,
+                startDate: startKey,
+                endDate: endKey,
+                records: {},
+                reflections: {}
+            };
             return {
-                goals: [
-                    {
-                        id: defaultGoalId,
-                        title: 'Napi jó cselekedet és rendrakás',
-                        description: 'Minden nap tudatosan figyelek arra, hogy segítsek másokon és rendet tartsak magam körül.',
-                        frequency: 'daily',
-                        weeklyTarget: 3,
-                        monthlyTarget: 12,
-                        startDate: formatDateKey(y, m, 1),
-                        endDate: formatDateKey(y, m, lastDay),
-                        records: {},
-                        reflections: {}
-                    }
-                ],
-                activeGoalId: defaultGoalId,
+                goals: [defaultGoal],
+                activeGoalId: defaultGoal.id,
                 activeView: 'daily',
                 theme: 'dark'
             };
@@ -1114,8 +1095,8 @@
             const def = createDefaultState();
             if (!raw || typeof raw !== 'object') return def;
             const goals = Array.isArray(raw.goals) && raw.goals.length > 0
-                ? raw.goals.map((g, idx) => ({
-                    id: g.id || `goal_${idx}_${Date.now()}`,
+                ? raw.goals.map(g => ({
+                    id: g.id || ('goal_' + Math.random().toString(36).slice(2)),
                     title: g.title || 'Önnevelési cél',
                     description: g.description || '',
                     frequency: ['daily', 'weekly', 'monthly'].includes(g.frequency) ? g.frequency : 'daily',
@@ -1128,10 +1109,7 @@
                 }))
                 : def.goals;
 
-            const activeGoalId = goals.some(g => g.id === raw.activeGoalId)
-                ? raw.activeGoalId
-                : goals[0].id;
-
+            const activeGoalId = goals.some(g => g.id === raw.activeGoalId) ? raw.activeGoalId : goals[0].id;
             return {
                 goals,
                 activeGoalId,
@@ -1140,132 +1118,114 @@
             };
         }
 
-        function initGoogleSitesEmbedMode() {
-            try {
-                if (window.self !== window.top) {
-                    document.documentElement.classList.add('is-embedded');
-                    document.body.classList.add('is-embedded');
-                }
-            } catch (e) {
-                document.documentElement.classList.add('is-embedded');
-                document.body.classList.add('is-embedded');
-            }
-        }
-
-        async function hashString(text) {
-            const str = String(text);
-            if (window.crypto && window.crypto.subtle) {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(str);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            }
-            let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
-            for (let i = 0; i < str.length; i++) {
-                const ch = str.charCodeAt(i);
-                h1 = Math.imul(h1 ^ ch, 2654435761);
-                h2 = Math.imul(h2 ^ ch, 1597334677);
-            }
-            h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-            h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-            return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
-        }
-
-        // --- HIBRID ADATTÁROLÁS (FELHŐ FIRESTORE + HELYI BIZTONSÁGI MENTÉS) ---
-        const LOCAL_REGISTRY_KEY = `onneveles_registered_users_${appId}`;
-        const LOCAL_STATS_KEY = `onneveles_user_leaderboard_${appId}`;
-        const LOCAL_JOURNAL_PREFIX = `onneveles_journal_${appId}_`;
-        const memoryFallbackStore = {};
-
+        const memoryStorageFallback = {};
         function safeGetStorage(key) {
-            try { return localStorage.getItem(key); } catch (e) { return memoryFallbackStore[key] ?? null; }
+            try {
+                return window.localStorage.getItem(key);
+            } catch (e) {
+                return memoryStorageFallback[key] || null;
+            }
         }
-        function safeSetStorage(key, value) {
-            try { localStorage.setItem(key, value); } catch (e) { memoryFallbackStore[key] = value; }
+        function safeSetStorage(key, val) {
+            try {
+                window.localStorage.setItem(key, val);
+            } catch (e) {
+                memoryStorageFallback[key] = val;
+            }
         }
         function safeRemoveStorage(key) {
-            try { localStorage.removeItem(key); } catch (e) { delete memoryFallbackStore[key]; }
+            try {
+                window.localStorage.removeItem(key);
+            } catch (e) {
+                delete memoryStorageFallback[key];
+            }
         }
 
         function normalizeUsernameKey(username) {
-            return String(username || '')
-                .trim()
-                .toLowerCase()
-                .replace(/[^a-z0-9áéíóöőúüű_-]/g, '');
+            return String(username || '').trim().toLowerCase().replace(/[^a-z0-9áéíóöőúüű_-]/g, '');
+        }
+
+        async function hashString(text) {
+            const data = new TextEncoder().encode(String(text));
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
         function getLocalUserRegistry() {
             try {
-                const raw = safeGetStorage(LOCAL_REGISTRY_KEY);
+                const raw = safeGetStorage(LOCAL_USERS_REGISTRY_KEY);
                 return raw ? JSON.parse(raw) : {};
-            } catch (e) { return {}; }
-        }
-        function saveLocalUserRegistry(registry) {
-            safeSetStorage(LOCAL_REGISTRY_KEY, JSON.stringify(registry));
-        }
-        function getLeaderboardStore() {
-            try {
-                const raw = safeGetStorage(LOCAL_STATS_KEY);
-                return raw ? JSON.parse(raw) : {};
-            } catch (e) { return {}; }
-        }
-        function saveLeaderboardStore(store) {
-            safeSetStorage(LOCAL_STATS_KEY, JSON.stringify(store));
+            } catch (e) {
+                return {};
+            }
         }
 
-        // Felhő dokumentum hivatkozások
-        function getCloudUserAccountDocRef(normalizedUsername) {
-            return doc(db, 'artifacts', appId, 'public', 'data', 'accounts', normalizedUsername);
+        function saveLocalUserRegistry(reg) {
+            safeSetStorage(LOCAL_USERS_REGISTRY_KEY, JSON.stringify(reg || {}));
         }
-        function getCloudJournalDocRef(accountKey) {
-            return doc(db, 'artifacts', appId, 'public', 'data', 'journals', accountKey);
+
+        function getLeaderboardStore() {
+            try {
+                const raw = safeGetStorage(LOCAL_LEADERBOARD_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
         }
-        function getCloudLeaderboardDocRef(accountKey) {
-            return doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', accountKey);
+
+        function saveLeaderboardStore(store) {
+            safeSetStorage(LOCAL_LEADERBOARD_KEY, JSON.stringify(store || {}));
         }
+
+        function getCloudUserAccountDocRef(normalizedKey) {
+            const uid = auth?.currentUser?.uid || 'shared';
+            return doc(db, 'artifacts', appId, 'users', uid, 'accounts', normalizedKey);
+        }
+
+        function getCloudJournalDocRef(profileId) {
+            const uid = auth?.currentUser?.uid || 'shared';
+            return doc(db, 'artifacts', appId, 'users', uid, 'journals', profileId);
+        }
+
+        function getCloudLeaderboardDocRef(profileId) {
+            const uid = auth?.currentUser?.uid || 'shared';
+            return doc(db, 'artifacts', appId, 'users', uid, 'leaderboard', profileId);
+        }
+
         function getCloudLeaderboardCollectionRef() {
-            return collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+            const uid = auth?.currentUser?.uid || 'shared';
+            return collection(db, 'artifacts', appId, 'users', uid, 'leaderboard');
         }
 
         function calculateUserAchievementCounts(stateObj) {
-            const goals = Array.isArray(stateObj?.goals) ? stateObj.goals : [];
+            const st = stateObj || appState;
             let completedDays = 0;
-            let dailyCompletedGoals = 0;
-            let weeklyCompletedGoals = 0;
-            let monthlyCompletedGoals = 0;
+            let daily = 0;
+            let weekly = 0;
+            let monthly = 0;
 
-            goals.forEach(g => {
-                const recs = g.records || {};
-                Object.values(recs).forEach(val => {
-                    if (val === 1) completedDays++;
+            if (st && Array.isArray(st.goals)) {
+                st.goals.forEach(g => {
+                    Object.values(g.records || {}).forEach(val => {
+                        if (val === 1) completedDays++;
+                    });
+                    if (isGoalCompleted(g)) {
+                        if (g.frequency === 'weekly') weekly++;
+                        else if (g.frequency === 'monthly') monthly++;
+                        else daily++;
+                    }
                 });
-
-                if (isGoalCompleted(g)) {
-                    if (g.frequency === 'weekly') weeklyCompletedGoals++;
-                    else if (g.frequency === 'monthly') monthlyCompletedGoals++;
-                    else dailyCompletedGoals++;
-                }
-            });
-
-            return {
-                completedDays,
-                daily: dailyCompletedGoals,
-                weekly: weeklyCompletedGoals,
-                monthly: monthlyCompletedGoals
-            };
+            }
+            return { completedDays, daily, weekly, monthly };
         }
 
         async function syncCurrentUserToLeaderboard() {
-            if (!loggedInProfileId || !loggedInUsername || !appState) return;
+            if (!loggedInProfileId || !loggedInUsername) return;
             const counts = calculateUserAchievementCounts(appState);
             const entry = {
                 profileId: loggedInProfileId,
                 username: loggedInUsername,
-                completedDays: counts.completedDays,
-                daily: counts.daily,
-                weekly: counts.weekly,
-                monthly: counts.monthly,
+                ...counts,
                 updatedAt: Date.now()
             };
 
@@ -1275,9 +1235,62 @@
 
             if (isCloudActive && db) {
                 try {
-                    await setDoc(getCloudLeaderboardDocRef(loggedInProfileId), entry, { merge: true });
-                } catch (err) {
-                    console.warn('Ranglista felhő frissítés hiba:', err);
+                    await setDoc(getCloudLeaderboardDocRef(loggedInProfileId), entry);
+                } catch (e) {
+                    console.warn('Felhő ranglista frissítés hiba:', e);
+                }
+            }
+        }
+
+        async function initCloudConnection() {
+            if (!activeFirebaseConfig || !activeFirebaseConfig.apiKey) {
+                updateCloudStatusUI(false, 'Nincs beállítva Firebase kulcs (csak ezen az eszközön ment).');
+                return;
+            }
+            try {
+                const fbApp = initializeApp(activeFirebaseConfig);
+                auth = getAuth(fbApp);
+                db = getFirestore(fbApp);
+                if (auth) {
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (authErr) {
+                        console.warn('Névtelen hitelesítés kihagyva:', authErr?.code);
+                    }
+                }
+                const testUid = auth?.currentUser?.uid || 'shared';
+                await getDoc(doc(db, 'artifacts', appId, 'users', testUid, 'health', 'ping'));
+                isCloudActive = true;
+                updateCloudStatusUI(true, 'Központi felhő adatbázis csatlakoztatva (több eszközös mód).');
+            } catch (err) {
+                console.warn('Felhő kapcsolat hiba:', err);
+                isCloudActive = false;
+                const errHint = err?.code === 'permission-denied'
+                    ? 'Firestore jogosultsági hiba! A Firebase Console -> Firestore -> Rules fülön engedélyezd az írást/olvasást.'
+                    : `Felhő hiba (${err?.code || 'kapcsolati hiba'}).`;
+                updateCloudStatusUI(false, errHint);
+            }
+        }
+
+        function updateCloudStatusUI(cloudReady, detailMessage = '') {
+            const badgeText = document.getElementById('syncModeBadgeText');
+            const footerEl = document.getElementById('footerStatusText');
+            const authBanner = document.getElementById('authCloudStatusBanner');
+            const authText = document.getElementById('authCloudStatusText');
+
+            if (cloudReady) {
+                if (badgeText) badgeText.textContent = 'Felhő szinkron aktív';
+                if (footerEl) footerEl.textContent = 'Önnevelési Napló • Felhő szinkronizáció aktív – minden eszközödről eléred a naplódat.';
+                if (authBanner && authText) {
+                    authBanner.className = 'rounded-xl border px-3 py-2 text-xs font-semibold bg-emerald-950/70 border-emerald-500/50 text-emerald-200';
+                    authText.textContent = detailMessage || 'Felhő szinkron aktív.';
+                }
+            } else {
+                if (badgeText) badgeText.textContent = 'Helyi mód (1 eszköz)';
+                if (footerEl) footerEl.textContent = 'Önnevelési Napló • Helyi böngészős mentés aktív. Több eszközös szinkronhoz add meg a Firebase kulcsokat.';
+                if (authBanner && authText) {
+                    authBanner.className = 'rounded-xl border px-3 py-2 text-xs font-semibold bg-amber-950/70 border-amber-500/50 text-amber-200';
+                    authText.textContent = detailMessage || 'Helyi mód: csak ezen az eszközön ment.';
                 }
             }
         }
@@ -1689,17 +1702,17 @@
                         showAuthError('Ez a felhasználónév már foglalt! Kérlek válassz egy másik felhasználónevet.');
                         return;
                     }
-                }
-
-                // 2. Ellenőrzés a helyi tárolóban
-                const registry = getLocalUserRegistry();
-                if (registry[normalizedKey]) {
-                    showAuthError('Ez a felhasználónév már foglalt! Kérlek válassz egy másik felhasználónevet.');
-                    return;
+                } else {
+                    // 2. Helyi tároló ellenőrzése csak akkor, ha nincs felhő
+                    const registry = getLocalUserRegistry();
+                    if (registry[normalizedKey]) {
+                        showAuthError('Ez a felhasználónév már foglalt! Kérlek válassz egy másik felhasználónevet.');
+                        return;
+                    }
                 }
 
                 const passwordHash = await hashString(password);
-                const accountKey = await hashString(`${normalizedKey}::${password}`);
+                const accountKey = await hashString(`${normalizedKey}::${password}::${Date.now()}`);
 
                 const accountData = {
                     username: rawUsername,
@@ -1712,6 +1725,7 @@
                     await setDoc(getCloudUserAccountDocRef(normalizedKey), accountData);
                 }
 
+                const registry = getLocalUserRegistry();
                 registry[normalizedKey] = accountData;
                 saveLocalUserRegistry(registry);
 
@@ -1724,7 +1738,11 @@
                 showToast(`Sikeres regisztráció! Üdvözlünk, ${rawUsername}!`);
             } catch (err) {
                 console.error('Regisztrációs hiba:', err);
-                showAuthError('Hiba történt a regisztráció során: ' + (err.message || 'Ismeretlen hiba'));
+                if (err?.code === 'permission-denied') {
+                    showAuthError('Firestore jogosultsági hiba! A Firebase Console -> Firestore Database -> Rules fülön állítsd be: allow read, write: if true;');
+                } else {
+                    showAuthError('Hiba történt a regisztráció során: ' + (err.message || 'Ismeretlen hiba'));
+                }
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Fiók létrehozása és belépés';
@@ -1754,18 +1772,14 @@
 
                 // 1. Először a felhőből kérjük le a fiókot (így másik eszközről is beléphet!)
                 if (isCloudActive && db) {
-                    try {
-                        const cloudAccSnap = await getDoc(getCloudUserAccountDocRef(normalizedKey));
-                        if (cloudAccSnap.exists()) {
-                            accountRecord = cloudAccSnap.data();
-                        }
-                    } catch (cloudErr) {
-                        console.warn('Felhő fiók lekérdezés hiba:', cloudErr);
+                    const cloudAccSnap = await getDoc(getCloudUserAccountDocRef(normalizedKey));
+                    if (cloudAccSnap.exists()) {
+                        accountRecord = cloudAccSnap.data();
                     }
                 }
 
                 // 2. Ha felhőben nem volt (vagy offline vagyunk), megnézzük a helyi tárolót
-                if (!accountRecord) {
+                if (!accountRecord && !isCloudActive) {
                     const registry = getLocalUserRegistry();
                     accountRecord = registry[normalizedKey] || null;
                 }
@@ -1789,13 +1803,9 @@
                 // Naplóadatok betöltése (elsőként a felhőből, ha elérhető)
                 let loadedJournal = null;
                 if (isCloudActive && db) {
-                    try {
-                        const journalSnap = await getDoc(getCloudJournalDocRef(accountKey));
-                        if (journalSnap.exists()) {
-                            loadedJournal = journalSnap.data();
-                        }
-                    } catch (jErr) {
-                        console.warn('Felhő napló betöltés hiba:', jErr);
+                    const journalSnap = await getDoc(getCloudJournalDocRef(accountKey));
+                    if (journalSnap.exists()) {
+                        loadedJournal = journalSnap.data();
                     }
                 }
 
@@ -1808,7 +1818,6 @@
 
                 if (loadedJournal) {
                     appState = normalizeState(loadedJournal);
-                    // Helyi másolat frissítése is
                     safeSetStorage(LOCAL_JOURNAL_PREFIX + accountKey, JSON.stringify(loadedJournal));
                 } else {
                     appState = createDefaultState();
@@ -1819,7 +1828,11 @@
                 showToast(`Jó munkát, ${displayUsername}!`);
             } catch (err) {
                 console.error('Bejelentkezési hiba:', err);
-                showAuthError('Sikertelen bejelentkezés. Ellenőrizd az adataidat és próbáld újra!');
+                if (err?.code === 'permission-denied') {
+                    showAuthError('Firestore jogosultsági hiba! A Firebase Console -> Firestore -> Rules fülön engedélyezd az olvasást és írást.');
+                } else {
+                    showAuthError('Sikertelen bejelentkezés: ' + (err.message || 'Ellenőrizd az adataidat!'));
+                }
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Belépés az önnevelési naplóba';
