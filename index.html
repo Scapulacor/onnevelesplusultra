@@ -86,7 +86,7 @@
             border-color: var(--card-border);
         }
 
-        /* Világos mód finomhangolások, hogy ne legyenek fekete elemek */
+        /* Világos mód finomhangolások */
         body.theme-light .text-scout-bark {
             color: #2D261C !important;
         }
@@ -157,7 +157,7 @@
             opacity: 0.32;
         }
 
-        /* Középkori kódex oklevél stílus (teljesen átlátszatlan) */
+        /* Középkori kódex oklevél stílus */
         .codex-certificate {
             background: radial-gradient(circle at center, #FCF6E3 0%, #F3E5C2 70%, #E5D09E 100%);
             color: #2B1D0E;
@@ -182,7 +182,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative selection:bg-emerald-600 selection:text-white">
 
-    <!-- Háttér tájkép: Éjszakai / Sötét mód (Mélykék - Fenyőzöld - Sötétbarna) -->
+    <!-- Háttér tájkép: Éjszakai / Sötét mód -->
     <div id="scenicBgDark" class="fixed inset-0 -z-10 pointer-events-none transition-opacity duration-500" style="opacity: 1;">
         <svg class="w-full h-full object-cover" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             <defs>
@@ -205,7 +205,6 @@
                 </linearGradient>
             </defs>
             <rect width="1440" height="900" fill="url(#nightSkyGrad)" />
-            <!-- Csillagok és hold -->
             <circle cx="1120" cy="145" r="34" fill="#F6E8B1" fill-opacity="0.16" />
             <circle cx="1120" cy="145" r="22" fill="#FCF3CF" fill-opacity="0.78" />
             <g fill="#E2F1F8" fill-opacity="0.65">
@@ -216,18 +215,15 @@
                 <circle cx="940" cy="160" r="1.5" />
                 <circle cx="1270" cy="95" r="2" />
             </g>
-            <!-- Távoli hegyvonulatok -->
             <path d="M0 540 Q 280 420, 620 510 T 1440 460 L 1440 900 L 0 900 Z" fill="url(#nightHillFar)" />
             <path d="M0 630 Q 420 530, 860 620 T 1440 560 L 1440 900 L 0 900 Z" fill="url(#nightHillMid)" />
             <path d="M0 760 Q 720 710, 1440 775 L 1440 900 L 0 900 Z" fill="url(#nightGround)" />
-            <!-- Bal oldalról belógó fenyő- és lombos fák -->
             <g fill="#0A231D">
                 <polygon points="-20,900 55,340 130,900" />
                 <polygon points="45,900 125,430 205,900" fill="#0D2D25" />
                 <path d="M-30 220 Q 150 240, 210 340 Q 110 380, -30 350 Z" fill="#0B261F" />
                 <path d="M-20 80 Q 190 95, 265 210 Q 130 250, -20 220 Z" fill="#081C17" />
             </g>
-            <!-- Jobb oldalról belógó fenyő- és lombos fák -->
             <g fill="#0A231D">
                 <polygon points="1310,900 1385,320 1465,900" />
                 <polygon points="1235,900 1310,440 1385,900" fill="#0D2D25" />
@@ -237,7 +233,7 @@
         </svg>
     </div>
 
-    <!-- Háttér tájkép: Nappali / Világos mód (Erdőzöld - Pergamen - Meleg napsütés) -->
+    <!-- Háttér tájkép: Nappali / Világos mód -->
     <div id="scenicBgLight" class="fixed inset-0 -z-10 pointer-events-none transition-opacity duration-500" style="opacity: 0;">
         <svg class="w-full h-full object-cover" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             <defs>
@@ -260,14 +256,12 @@
             <path d="M0 540 Q 280 420, 620 510 T 1440 460 L 1440 900 L 0 900 Z" fill="url(#dayHillFar)" />
             <path d="M0 630 Q 420 530, 860 620 T 1440 560 L 1440 900 L 0 900 Z" fill="url(#dayHillMid)" />
             <path d="M0 760 Q 720 710, 1440 775 L 1440 900 L 0 900 Z" fill="#8C7355" fill-opacity="0.45" />
-            <!-- Bal oldalról belógó fák -->
             <g fill="#2F5D3A">
                 <polygon points="-20,900 55,340 130,900" />
                 <polygon points="45,900 125,430 205,900" fill="#3D7047" />
                 <path d="M-30 220 Q 150 240, 210 340 Q 110 380, -30 350 Z" fill="#2A5434" />
                 <path d="M-20 80 Q 190 95, 265 210 Q 130 250, -20 220 Z" fill="#22462B" />
             </g>
-            <!-- Jobb oldalról belógó fák -->
             <g fill="#2F5D3A">
                 <polygon points="1310,900 1385,320 1465,900" />
                 <polygon points="1235,900 1310,440 1385,900" fill="#3D7047" />
@@ -298,9 +292,9 @@
                         <h1 class="text-base sm:text-xl md:text-2xl font-extrabold tracking-tight truncate">
                             Önnevelési Napló
                         </h1>
-                        <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-900/70 text-emerald-200 border border-emerald-500/40">
+                        <span id="syncModeBadge" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-900/70 text-emerald-200 border border-emerald-500/40">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                            Privát napló
+                            <span id="syncModeBadgeText">Privát napló</span>
                         </span>
                     </div>
                     <p class="text-xs sm:text-sm opacity-85 italic leading-snug mt-0.5">
@@ -324,7 +318,7 @@
                         </svg>
                     </button>
 
-                    <!-- Beállítások legördülő menü (Világos / Sötét téma választó - minden ablak fölött) -->
+                    <!-- Beállítások legördülő menü -->
                     <div id="settingsDropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 max-h-[82vh] overflow-y-auto rounded-2xl scenic-glass-card border-2 border-scout-sand shadow-2xl p-3.5 z-[999] space-y-3">
                         <div>
                             <div class="text-xs font-bold uppercase tracking-wider text-scout-bark mb-2 px-1">
@@ -366,7 +360,7 @@
                                 </div>
                             </div>
 
-                            <!-- Edzői / Teljesített statisztikák a profilban -->
+                            <!-- Teljesített statisztikák a profilban -->
                             <div class="grid grid-cols-2 gap-1.5 pt-1">
                                 <div class="p-2 rounded-xl bg-scout-cream border border-scout-sand">
                                     <div class="text-[10px] opacity-75">Teljesített napok</div>
@@ -649,7 +643,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider mb-1">Rövid leírás / motiváció</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1">Rövid leírás / fogadalom</label>
                     <textarea id="goalDescInput" rows="2" placeholder="Mit vállalsz pontosan?" class="w-full rounded-xl border-2 px-3.5 py-2 text-sm theme-input focus:outline-none focus:border-emerald-500 resize-none"></textarea>
                 </div>
 
@@ -696,11 +690,11 @@
                 <!-- Időtartam megadása -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider mb-1">Vállalás eleje *</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-1">Kezdő dátum *</label>
                         <input type="date" id="goalStartDateInput" required class="w-full rounded-xl border-2 px-3 py-2 text-sm theme-input focus:outline-none focus:border-emerald-500" />
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider mb-1">Vállalás vége *</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider mb-1">Végdátum *</label>
                         <input type="date" id="goalEndDateInput" required class="w-full rounded-xl border-2 px-3 py-2 text-sm theme-input focus:outline-none focus:border-emerald-500" />
                     </div>
                 </div>
@@ -720,25 +714,17 @@
     <!-- MODÁLIS ABLAK: Középkori kódex stílusú Teljesítési Oklevél -->
     <div id="certificateModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
         <div class="codex-certificate rounded-2xl w-full max-w-3xl p-5 sm:p-8 relative my-auto overflow-hidden">
-            <!-- Kódex zöld, leveles indákból összefonódott keret díszítés -->
             <div class="border-2 border-[#1B5E3A] rounded-xl p-4 sm:p-6 relative space-y-5">
-                <!-- Körbefutó sűrűbben csavarodó zöld leveles inda SVG keret nagyobb levelekkel -->
                 <svg class="absolute inset-0 w-full h-full pointer-events-none select-none" viewBox="0 0 800 620" preserveAspectRatio="none" aria-hidden="true">
-                    <!-- Felső sűrűn csavarodó kettős inda -->
                     <path d="M16 14 Q 55 1, 95 14 T 175 14 T 255 14 T 335 14 T 415 14 T 495 14 T 575 14 T 655 14 T 735 14 T 784 14" fill="none" stroke="#1B5E3A" stroke-width="2.6" />
                     <path d="M16 14 Q 55 27, 95 14 T 175 14 T 255 14 T 335 14 T 415 14 T 495 14 T 575 14 T 655 14 T 735 14 T 784 14" fill="none" stroke="#2E7D4F" stroke-width="2" />
-                    <!-- Alsó sűrűn csavarodó kettős inda -->
                     <path d="M16 606 Q 55 593, 95 606 T 175 606 T 255 606 T 335 606 T 415 606 T 495 606 T 575 606 T 655 606 T 735 606 T 784 606" fill="none" stroke="#1B5E3A" stroke-width="2.6" />
                     <path d="M16 606 Q 55 619, 95 606 T 175 606 T 255 606 T 335 606 T 415 606 T 495 606 T 575 606 T 655 606 T 735 606 T 784 606" fill="none" stroke="#2E7D4F" stroke-width="2" />
-                    <!-- Bal oldali sűrűn csavarodó kettős inda -->
                     <path d="M14 16 Q 1 55, 14 95 T 14 175 T 14 255 T 14 335 T 14 415 T 14 495 T 14 575 T 14 604" fill="none" stroke="#1B5E3A" stroke-width="2.6" />
                     <path d="M14 16 Q 27 55, 14 95 T 14 175 T 14 255 T 14 335 T 14 415 T 14 495 T 14 575 T 14 604" fill="none" stroke="#2E7D4F" stroke-width="2" />
-                    <!-- Jobb oldali sűrűn csavarodó kettős inda -->
                     <path d="M786 16 Q 773 55, 786 95 T 786 175 T 786 255 T 786 335 T 786 415 T 786 495 T 786 575 T 786 604" fill="none" stroke="#1B5E3A" stroke-width="2.6" />
                     <path d="M786 16 Q 799 55, 786 95 T 786 175 T 786 255 T 786 335 T 786 415 T 786 495 T 786 575 T 786 604" fill="none" stroke="#2E7D4F" stroke-width="2" />
-                    <!-- Nagyobb zöld levelek a csavarulatok mentén -->
                     <g fill="#1B5E3A" opacity="0.92">
-                        <!-- Felső nagyobb levelek -->
                         <path d="M55 8 C66 -3, 84 -1, 88 9 C78 16, 63 14, 55 8 Z" />
                         <path d="M135 20 C146 31, 164 29, 168 19 C158 12, 143 14, 135 20 Z" />
                         <path d="M215 8 C226 -3, 244 -1, 248 9 C238 16, 223 14, 215 8 Z" />
@@ -748,7 +734,6 @@
                         <path d="M535 8 C546 -3, 564 -1, 568 9 C558 16, 543 14, 535 8 Z" />
                         <path d="M615 20 C626 31, 644 29, 648 19 C638 12, 623 14, 615 20 Z" />
                         <path d="M695 8 C706 -3, 724 -1, 728 9 C718 16, 703 14, 695 8 Z" />
-                        <!-- Alsó nagyobb levelek -->
                         <path d="M55 612 C66 623, 84 621, 88 611 C78 604, 63 606, 55 612 Z" />
                         <path d="M135 600 C146 589, 164 591, 168 601 C158 608, 143 606, 135 600 Z" />
                         <path d="M215 612 C226 623, 244 621, 248 611 C238 604, 223 606, 215 612 Z" />
@@ -758,7 +743,6 @@
                         <path d="M535 612 C546 623, 564 621, 568 611 C558 604, 543 606, 535 612 Z" />
                         <path d="M615 600 C626 589, 644 591, 648 601 C638 608, 623 606, 615 600 Z" />
                         <path d="M695 612 C706 623, 724 621, 728 611 C718 604, 703 606, 695 612 Z" />
-                        <!-- Bal oldali nagyobb levelek -->
                         <path d="M8 55 C-3 66, -1 84, 9 88 C16 78, 14 63, 8 55 Z" />
                         <path d="M20 135 C31 146, 29 164, 19 168 C12 158, 14 143, 20 135 Z" />
                         <path d="M8 215 C-3 226, -1 244, 9 248 C16 238, 14 223, 8 215 Z" />
@@ -766,7 +750,6 @@
                         <path d="M8 375 C-3 386, -1 404, 9 408 C16 398, 14 383, 8 375 Z" />
                         <path d="M20 455 C31 466, 29 484, 19 488 C12 478, 14 463, 20 455 Z" />
                         <path d="M8 535 C-3 546, -1 564, 9 568 C16 558, 14 543, 8 535 Z" />
-                        <!-- Jobb oldali nagyobb levelek -->
                         <path d="M792 55 C803 66, 801 84, 791 88 C784 78, 786 63, 792 55 Z" />
                         <path d="M780 135 C769 146, 771 164, 781 168 C788 158, 786 143, 780 135 Z" />
                         <path d="M792 215 C803 226, 801 244, 791 248 C784 238, 786 223, 792 215 Z" />
@@ -774,7 +757,6 @@
                         <path d="M792 375 C803 386, 801 404, 791 408 C784 398, 786 383, 792 375 Z" />
                         <path d="M780 455 C769 466, 771 484, 781 488 C788 478, 786 463, 780 455 Z" />
                         <path d="M792 535 C803 546, 801 564, 791 568 C784 558, 786 543, 792 535 Z" />
-                        <!-- Sarok levélcsokrok -->
                         <path d="M14 14 C24 4, 38 6, 40 16 C30 22, 18 20, 14 14 Z" />
                         <path d="M14 14 C4 24, 6 38, 16 40 C22 30, 20 18, 14 14 Z" />
                         <path d="M786 14 C776 4, 762 6, 760 16 C770 22, 782 20, 786 14 Z" />
@@ -786,7 +768,6 @@
                     </g>
                 </svg>
 
-                <!-- Bezárás és nyomtatás gombok -->
                 <div class="flex items-center justify-between gap-2 no-print">
                     <span id="certOrdinalBadge" class="px-3 py-1 rounded-full bg-amber-900/15 border border-amber-800/40 text-amber-950 font-parchment font-bold text-xs sm:text-sm">
                         1. teljesített önnevelési cél
@@ -801,10 +782,8 @@
                     </div>
                 </div>
 
-                <!-- Díszes növényes E iniciálé és középkori főcím -->
                 <div class="text-center space-y-2 pt-1">
                     <div class="inline-flex items-center justify-center gap-2 sm:gap-3">
-                        <!-- Díszes növényes E iniciálé -->
                         <svg class="w-12 h-12 sm:w-14 sm:h-14 shrink-0" viewBox="0 0 80 80" aria-hidden="true">
                             <rect x="4" y="4" width="72" height="72" rx="10" fill="#1B5E3A" stroke="#B45309" stroke-width="3" />
                             <path d="M12 66 Q 22 45, 16 24 Q 26 14, 46 14" fill="none" stroke="#86EFAC" stroke-width="2" stroke-linecap="round" />
@@ -821,7 +800,6 @@
                     </p>
                 </div>
 
-                <!-- Megnevezett cél és időtartam -->
                 <div class="text-center bg-amber-900/10 border border-amber-800/30 rounded-xl p-4 space-y-1">
                     <div class="text-xs uppercase tracking-widest text-amber-900 font-bold">Teljesített önnevelési cél</div>
                     <div id="certGoalTitle" class="font-codex text-lg sm:text-2xl font-bold text-emerald-950">
@@ -832,7 +810,6 @@
                     </div>
                 </div>
 
-                <!-- Statisztikák rács -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
                     <div class="bg-white/60 border border-amber-800/30 rounded-xl p-3">
                         <div class="text-[11px] uppercase tracking-wider text-amber-900 font-bold">Leghosszabb sorozat</div>
@@ -852,7 +829,6 @@
                     </div>
                 </div>
 
-                <!-- Lelkesedés domborzat idővonal diagram -->
                 <div class="bg-white/55 border border-amber-800/30 rounded-xl p-3.5 space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="font-codex text-xs sm:text-sm font-bold text-amber-950">Lelkesedés domborzat</span>
@@ -861,7 +837,6 @@
                     <svg id="certificateTimelineSvg" viewBox="0 0 760 175" class="w-full h-36 sm:h-44 overflow-visible" aria-label="Lelkesedés domborzat diagram"></svg>
                 </div>
 
-                <!-- Lábléc és dátum -->
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-amber-800/30 font-parchment text-xs sm:text-sm text-amber-950">
                     <div>Kelt: <span id="certIssuedDate" class="font-bold">2026.</span></div>
                     <div class="italic font-bold text-emerald-950">„Kitartással és hűséggel a vállalt cél felé!”</div>
@@ -889,7 +864,6 @@
                 </div>
             </div>
 
-            <!-- Hibaüzenet sáv -->
             <div id="authErrorBox" class="hidden rounded-xl bg-rose-950/85 border border-rose-500/60 text-rose-100 px-3.5 py-2.5 text-xs sm:text-sm font-semibold">
             </div>
 
@@ -954,7 +928,7 @@
         </div>
     </div>
 
-    <!-- MODÁLIS ABLAK: Megerősítés (Törlés / Nullázás) -->
+    <!-- MODÁLIS ABLAK: Megerősítés -->
     <div id="confirmModal" class="hidden fixed inset-0 z-[1200] bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 no-print">
         <div class="scenic-glass-card rounded-2xl border-2 border-scout-sand w-full max-w-md p-5 sm:p-6 shadow-2xl space-y-4">
             <h3 id="confirmModalTitle" class="text-base sm:text-lg font-extrabold">Megerősítés</h3>
@@ -973,8 +947,8 @@
     </div>
 
     <!-- Lábléc -->
-    <footer class="footer-bar scenic-glass-card border-t border-scout-sand/60 py-3 px-4 text-center text-xs opacity-80 no-print">
-        Önnevelési Napló • Minden bejegyzés automatikusan mentődik a saját privát fiókodba ezen az eszközön.
+    <footer id="footerStatusText" class="footer-bar scenic-glass-card border-t border-scout-sand/60 py-3 px-4 text-center text-xs opacity-80 no-print">
+        Önnevelési Napló • Minden bejegyzés automatikusan mentődik a saját privát fiókodba.
     </footer>
 
     <!-- Értesítési sáv (Toast) -->
@@ -982,9 +956,75 @@
         <span id="toastMessage">Mentve</span>
     </div>
 
-    <!-- Alkalmazás logika (Helyi privát fiókok + Önnevelési naptár) -->
-    <script>
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'onnevelesi-naplo-local';
+    <!-- Alkalmazás logika: Hibrid Felhő Szinkronizáció (Firebase Firestore) + Automatikus helyi mentés -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        // =========================================================================
+        // 1. TÖBB ESZKÖZÖS FELHŐ SZINKRONIZÁCIÓ BEÁLLÍTÁSA (FIREBASE)
+        // Ha szeretnéd, hogy minden eszközről (telefonról, gépről) ugyanazzal a
+        // felhasználónévvel és jelszóval lásd a módosításokat, másold be ide a
+        // saját ingyenes Firebase projekted adatait!
+        // =========================================================================
+        const CUSTOM_FIREBASE_CONFIG = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        const rawEnvConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const activeFirebaseConfig = (CUSTOM_FIREBASE_CONFIG && CUSTOM_FIREBASE_CONFIG.apiKey)
+            ? CUSTOM_FIREBASE_CONFIG
+            : rawEnvConfig;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'onnevelesi-naplo-cloud-v1';
+
+        let db = null;
+        let auth = null;
+        let isCloudActive = false;
+
+        async function initCloudConnection() {
+            if (!activeFirebaseConfig || !activeFirebaseConfig.apiKey) {
+                updateCloudStatusUI(false);
+                return;
+            }
+            try {
+                const fbApp = initializeApp(activeFirebaseConfig);
+                auth = getAuth(fbApp);
+                db = getFirestore(fbApp);
+                if (auth) {
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (authErr) {
+                        // Ha az Anonymous Auth nincs bekapcsolva, nyitott Firestore szabályokkal akkor is működik
+                        console.warn('Névtelen hitelesítés kihagyva:', authErr?.code);
+                    }
+                }
+                isCloudActive = true;
+                updateCloudStatusUI(true);
+            } catch (err) {
+                console.warn('Felhő kapcsolat nem érhető el, helyi mód aktív:', err);
+                isCloudActive = false;
+                updateCloudStatusUI(false);
+            }
+        }
+
+        function updateCloudStatusUI(cloudReady) {
+            const badgeText = document.getElementById('syncModeBadgeText');
+            const footerEl = document.getElementById('footerStatusText');
+            if (cloudReady) {
+                if (badgeText) badgeText.textContent = 'Felhő szinkron aktív';
+                if (footerEl) footerEl.textContent = 'Önnevelési Napló • Felhő szinkronizáció aktív – minden eszközödről eléred a naplódat.';
+            } else {
+                if (badgeText) badgeText.textContent = 'Helyi mód (1 eszköz)';
+                if (footerEl) footerEl.textContent = 'Önnevelési Napló • Helyi böngészős mentés aktív. Több eszközös szinkronhoz add meg a Firebase kulcsokat.';
+            }
+        }
 
         const HUNGARIAN_MONTHS = [
             'január', 'február', 'március', 'április', 'május', 'június',
@@ -1132,34 +1172,20 @@
             return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16);
         }
 
-        // --- PRIVÁT FELHASZNÁLÓI ADATOK BETÖLTÉSE ÉS MENTÉSE (HELYI TÁROLÓ) ---
+        // --- HIBRID ADATTÁROLÁS (FELHŐ FIRESTORE + HELYI BIZTONSÁGI MENTÉS) ---
         const LOCAL_REGISTRY_KEY = `onneveles_registered_users_${appId}`;
         const LOCAL_STATS_KEY = `onneveles_user_leaderboard_${appId}`;
         const LOCAL_JOURNAL_PREFIX = `onneveles_journal_${appId}_`;
         const memoryFallbackStore = {};
 
         function safeGetStorage(key) {
-            try {
-                return localStorage.getItem(key);
-            } catch (e) {
-                return Object.prototype.hasOwnProperty.call(memoryFallbackStore, key) ? memoryFallbackStore[key] : null;
-            }
+            try { return localStorage.getItem(key); } catch (e) { return memoryFallbackStore[key] ?? null; }
         }
-
         function safeSetStorage(key, value) {
-            try {
-                localStorage.setItem(key, value);
-            } catch (e) {
-                memoryFallbackStore[key] = value;
-            }
+            try { localStorage.setItem(key, value); } catch (e) { memoryFallbackStore[key] = value; }
         }
-
         function safeRemoveStorage(key) {
-            try {
-                localStorage.removeItem(key);
-            } catch (e) {
-                delete memoryFallbackStore[key];
-            }
+            try { localStorage.removeItem(key); } catch (e) { delete memoryFallbackStore[key]; }
         }
 
         function normalizeUsernameKey(username) {
@@ -1173,43 +1199,33 @@
             try {
                 const raw = safeGetStorage(LOCAL_REGISTRY_KEY);
                 return raw ? JSON.parse(raw) : {};
-            } catch (e) {
-                return {};
-            }
+            } catch (e) { return {}; }
         }
-
         function saveLocalUserRegistry(registry) {
             safeSetStorage(LOCAL_REGISTRY_KEY, JSON.stringify(registry));
         }
-
         function getLeaderboardStore() {
             try {
                 const raw = safeGetStorage(LOCAL_STATS_KEY);
                 return raw ? JSON.parse(raw) : {};
-            } catch (e) {
-                return {};
-            }
+            } catch (e) { return {}; }
         }
-
         function saveLeaderboardStore(store) {
             safeSetStorage(LOCAL_STATS_KEY, JSON.stringify(store));
         }
 
-        function loadPrivateJournalFromStorage(profileId) {
-            try {
-                const raw = safeGetStorage(LOCAL_JOURNAL_PREFIX + profileId);
-                return raw ? JSON.parse(raw) : null;
-            } catch (e) {
-                return null;
-            }
+        // Felhő dokumentum hivatkozások
+        function getCloudUserAccountDocRef(normalizedUsername) {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'accounts', normalizedUsername);
         }
-
-        function savePrivateJournalToStorage(profileId, payload) {
-            safeSetStorage(LOCAL_JOURNAL_PREFIX + profileId, JSON.stringify(payload));
+        function getCloudJournalDocRef(accountKey) {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'journals', accountKey);
         }
-
-        function deletePrivateJournalFromStorage(profileId) {
-            safeRemoveStorage(LOCAL_JOURNAL_PREFIX + profileId);
+        function getCloudLeaderboardDocRef(accountKey) {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', accountKey);
+        }
+        function getCloudLeaderboardCollectionRef() {
+            return collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
         }
 
         function calculateUserAchievementCounts(stateObj) {
@@ -1240,11 +1256,10 @@
             };
         }
 
-        function syncCurrentUserToLeaderboard() {
+        async function syncCurrentUserToLeaderboard() {
             if (!loggedInProfileId || !loggedInUsername || !appState) return;
             const counts = calculateUserAchievementCounts(appState);
-            const store = getLeaderboardStore();
-            store[loggedInProfileId] = {
+            const entry = {
                 profileId: loggedInProfileId,
                 username: loggedInUsername,
                 completedDays: counts.completedDays,
@@ -1253,7 +1268,18 @@
                 monthly: counts.monthly,
                 updatedAt: Date.now()
             };
+
+            const store = getLeaderboardStore();
+            store[loggedInProfileId] = entry;
             saveLeaderboardStore(store);
+
+            if (isCloudActive && db) {
+                try {
+                    await setDoc(getCloudLeaderboardDocRef(loggedInProfileId), entry, { merge: true });
+                } catch (err) {
+                    console.warn('Ranglista felhő frissítés hiba:', err);
+                }
+            }
         }
 
         function renderProfileSettingsStats() {
@@ -1273,15 +1299,14 @@
             }
         }
 
-        function computeRankedCategoryList(categoryKey) {
-            syncCurrentUserToLeaderboard();
-            const store = getLeaderboardStore();
-            const registry = getLocalUserRegistry();
+        async function fetchAllLeaderboardEntries() {
+            await syncCurrentUserToLeaderboard();
+            const mergedMap = { ...getLeaderboardStore() };
 
-            // Biztosítjuk, hogy minden regisztrált felhasználó szerepeljen a listában (0 ponttal is)
+            const registry = getLocalUserRegistry();
             Object.values(registry).forEach(regUser => {
-                if (regUser?.accountKey && !store[regUser.accountKey]) {
-                    store[regUser.accountKey] = {
+                if (regUser?.accountKey && !mergedMap[regUser.accountKey]) {
+                    mergedMap[regUser.accountKey] = {
                         profileId: regUser.accountKey,
                         username: regUser.username,
                         completedDays: 0,
@@ -1292,7 +1317,26 @@
                 }
             });
 
-            const entries = Object.values(store).map(item => ({
+            if (isCloudActive && db) {
+                try {
+                    const snap = await getDocs(getCloudLeaderboardCollectionRef());
+                    snap.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (data && data.profileId) {
+                            mergedMap[data.profileId] = data;
+                        }
+                    });
+                    saveLeaderboardStore(mergedMap);
+                } catch (err) {
+                    console.warn('Felhő ranglista lekérdezés hiba:', err);
+                }
+            }
+
+            return Object.values(mergedMap);
+        }
+
+        function rankEntriesByCategory(allEntries, categoryKey) {
+            const entries = allEntries.map(item => ({
                 profileId: item.profileId,
                 username: item.username || 'Felhasználó',
                 score: Number(item[categoryKey]) || 0
@@ -1316,22 +1360,28 @@
             return entries;
         }
 
-        function openLeaderboardModal() {
+        async function openLeaderboardModal() {
             const menu = document.getElementById('settingsDropdown');
             if (menu) menu.classList.add('hidden');
 
-            renderLeaderboardModal();
             document.getElementById('leaderboardModal').classList.remove('hidden');
+            const container = document.getElementById('leaderboardCategoriesGrid');
+            if (container) {
+                container.innerHTML = '<div class="col-span-full text-center py-8 text-sm opacity-80">Ranglista betöltése...</div>';
+            }
+
+            await renderLeaderboardModal();
         }
 
         function closeLeaderboardModal() {
             document.getElementById('leaderboardModal').classList.add('hidden');
         }
 
-        function renderLeaderboardModal() {
+        async function renderLeaderboardModal() {
             const container = document.getElementById('leaderboardCategoriesGrid');
             if (!container) return;
 
+            const allEntries = await fetchAllLeaderboardEntries();
             const categories = [
                 { key: 'daily', title: 'Mindennapi önnevelés' },
                 { key: 'weekly', title: 'Heti önnevelés' },
@@ -1339,7 +1389,7 @@
             ];
 
             container.innerHTML = categories.map(cat => {
-                const rankedList = computeRankedCategoryList(cat.key);
+                const rankedList = rankEntriesByCategory(allEntries, cat.key);
                 const topThree = rankedList.slice(0, 3);
                 const currentUserEntry = rankedList.find(e => e.profileId === loggedInProfileId);
                 const isCurrentUserInTopThree = topThree.some(e => e.profileId === loggedInProfileId);
@@ -1423,32 +1473,64 @@
                 return;
             }
 
+            // Felhőben és helyben is ellenőrizzük, hogy szabad-e az új név
+            if (isCloudActive && db && newNormalized !== oldNormalized) {
+                try {
+                    const targetSnap = await getDoc(getCloudUserAccountDocRef(newNormalized));
+                    if (targetSnap.exists()) {
+                        showToast('Ez a felhasználónév már foglalt a felhőben! Válassz másikat.');
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Felhő névellenőrzés hiba:', e);
+                }
+            }
+
             const registry = getLocalUserRegistry();
             if (newNormalized !== oldNormalized && registry[newNormalized]) {
                 showToast('Ez a felhasználónév már foglalt! Válassz másikat.');
                 return;
             }
 
-            const existingEntry = registry[oldNormalized] || {
-                passwordHash: '',
-                accountKey: loggedInProfileId,
-                createdAt: Date.now()
+            let accountRecord = registry[oldNormalized] || null;
+            if (isCloudActive && db) {
+                try {
+                    const oldCloudSnap = await getDoc(getCloudUserAccountDocRef(oldNormalized));
+                    if (oldCloudSnap.exists()) {
+                        accountRecord = oldCloudSnap.data();
+                    }
+                } catch (e) {
+                    console.warn('Régi felhő fiók lekérdezés hiba:', e);
+                }
+            }
+
+            const updatedAccountRecord = {
+                ...(accountRecord || { passwordHash: '', accountKey: loggedInProfileId, createdAt: Date.now() }),
+                username: newUsername
             };
+
+            if (isCloudActive && db) {
+                try {
+                    await setDoc(getCloudUserAccountDocRef(newNormalized), updatedAccountRecord);
+                    if (oldNormalized !== newNormalized) {
+                        await deleteDoc(getCloudUserAccountDocRef(oldNormalized));
+                    }
+                } catch (e) {
+                    console.warn('Felhő névmódosítás mentés hiba:', e);
+                }
+            }
 
             if (oldNormalized !== newNormalized) {
                 delete registry[oldNormalized];
             }
-            registry[newNormalized] = {
-                ...existingEntry,
-                username: newUsername
-            };
+            registry[newNormalized] = updatedAccountRecord;
             saveLocalUserRegistry(registry);
 
             loggedInUsername = newUsername;
             const idEl = document.getElementById('userAccountIdDisplay');
             if (idEl) idEl.textContent = `Felhasználó: ${newUsername}`;
 
-            syncCurrentUserToLeaderboard();
+            await syncCurrentUserToLeaderboard();
             await saveStateImmediate();
             renderProfileSettingsStats();
             showToast(`Felhasználónév sikeresen módosítva: ${newUsername}`);
@@ -1473,14 +1555,23 @@
             const targetUsername = loggedInUsername;
 
             try {
+                if (isCloudActive && db) {
+                    if (targetUsername) {
+                        await deleteDoc(getCloudUserAccountDocRef(normalizeUsernameKey(targetUsername))).catch(() => {});
+                    }
+                    if (targetProfileId) {
+                        await deleteDoc(getCloudJournalDocRef(targetProfileId)).catch(() => {});
+                        await deleteDoc(getCloudLeaderboardDocRef(targetProfileId)).catch(() => {});
+                    }
+                }
+
                 if (targetProfileId) {
-                    deletePrivateJournalFromStorage(targetProfileId);
+                    safeRemoveStorage(LOCAL_JOURNAL_PREFIX + targetProfileId);
                 }
 
                 const registry = getLocalUserRegistry();
                 if (targetUsername) {
-                    const normKey = normalizeUsernameKey(targetUsername);
-                    delete registry[normKey];
+                    delete registry[normalizeUsernameKey(targetUsername)];
                 }
                 Object.keys(registry).forEach(k => {
                     if (registry[k]?.accountKey === targetProfileId) {
@@ -1553,12 +1644,13 @@
             }
         }
 
-        function initPrivateUserWorkspace() {
+        async function initPrivateUserWorkspace() {
             appState = createDefaultState();
             applyTheme(appState.theme);
             renderAll();
 
-            // Minden megnyitáskor először a Bejelentkezés ablak jelenik meg
+            await initCloudConnection();
+
             switchAuthMode('login');
             document.getElementById('authModal').classList.remove('hidden');
         }
@@ -1590,6 +1682,16 @@
             btn.textContent = 'Fiók létrehozása...';
 
             try {
+                // 1. Ellenőrzés a felhőben (ha aktív)
+                if (isCloudActive && db) {
+                    const cloudUserSnap = await getDoc(getCloudUserAccountDocRef(normalizedKey));
+                    if (cloudUserSnap.exists()) {
+                        showAuthError('Ez a felhasználónév már foglalt! Kérlek válassz egy másik felhasználónevet.');
+                        return;
+                    }
+                }
+
+                // 2. Ellenőrzés a helyi tárolóban
                 const registry = getLocalUserRegistry();
                 if (registry[normalizedKey]) {
                     showAuthError('Ez a felhasználónév már foglalt! Kérlek válassz egy másik felhasználónevet.');
@@ -1599,18 +1701,24 @@
                 const passwordHash = await hashString(password);
                 const accountKey = await hashString(`${normalizedKey}::${password}`);
 
-                registry[normalizedKey] = {
+                const accountData = {
                     username: rawUsername,
                     passwordHash,
                     accountKey,
                     createdAt: Date.now()
                 };
+
+                if (isCloudActive && db) {
+                    await setDoc(getCloudUserAccountDocRef(normalizedKey), accountData);
+                }
+
+                registry[normalizedKey] = accountData;
                 saveLocalUserRegistry(registry);
 
                 loggedInUsername = rawUsername;
                 loggedInProfileId = accountKey;
                 appState = createDefaultState();
-                saveStateImmediate();
+                await saveStateImmediate();
 
                 completeUserSignIn(rawUsername, accountKey);
                 showToast(`Sikeres regisztráció! Üdvözlünk, ${rawUsername}!`);
@@ -1641,27 +1749,70 @@
             btn.textContent = 'Belépés...';
 
             try {
-                const registry = getLocalUserRegistry();
-                const localEntry = registry[normalizedKey];
                 const enteredHash = await hashString(password);
+                let accountRecord = null;
 
-                if (!localEntry || localEntry.passwordHash !== enteredHash) {
+                // 1. Először a felhőből kérjük le a fiókot (így másik eszközről is beléphet!)
+                if (isCloudActive && db) {
+                    try {
+                        const cloudAccSnap = await getDoc(getCloudUserAccountDocRef(normalizedKey));
+                        if (cloudAccSnap.exists()) {
+                            accountRecord = cloudAccSnap.data();
+                        }
+                    } catch (cloudErr) {
+                        console.warn('Felhő fiók lekérdezés hiba:', cloudErr);
+                    }
+                }
+
+                // 2. Ha felhőben nem volt (vagy offline vagyunk), megnézzük a helyi tárolót
+                if (!accountRecord) {
+                    const registry = getLocalUserRegistry();
+                    accountRecord = registry[normalizedKey] || null;
+                }
+
+                if (!accountRecord || accountRecord.passwordHash !== enteredHash) {
                     showAuthError('Hibás felhasználónév vagy jelszó! Ha még nincs fiókod, kattints a Regisztráció feliratra.');
                     return;
                 }
 
-                const accountKey = localEntry.accountKey;
-                const displayUsername = localEntry.username || rawUsername;
+                const accountKey = accountRecord.accountKey;
+                const displayUsername = accountRecord.username || rawUsername;
+
+                // Helyi gyorsítótárba is elmentjük a fiók metaadatait
+                const registry = getLocalUserRegistry();
+                registry[normalizedKey] = accountRecord;
+                saveLocalUserRegistry(registry);
 
                 loggedInUsername = displayUsername;
                 loggedInProfileId = accountKey;
 
-                const savedJournal = loadPrivateJournalFromStorage(accountKey);
-                if (savedJournal) {
-                    appState = normalizeState(savedJournal);
+                // Naplóadatok betöltése (elsőként a felhőből, ha elérhető)
+                let loadedJournal = null;
+                if (isCloudActive && db) {
+                    try {
+                        const journalSnap = await getDoc(getCloudJournalDocRef(accountKey));
+                        if (journalSnap.exists()) {
+                            loadedJournal = journalSnap.data();
+                        }
+                    } catch (jErr) {
+                        console.warn('Felhő napló betöltés hiba:', jErr);
+                    }
+                }
+
+                if (!loadedJournal) {
+                    try {
+                        const rawLocal = safeGetStorage(LOCAL_JOURNAL_PREFIX + accountKey);
+                        if (rawLocal) loadedJournal = JSON.parse(rawLocal);
+                    } catch (e) {}
+                }
+
+                if (loadedJournal) {
+                    appState = normalizeState(loadedJournal);
+                    // Helyi másolat frissítése is
+                    safeSetStorage(LOCAL_JOURNAL_PREFIX + accountKey, JSON.stringify(loadedJournal));
                 } else {
                     appState = createDefaultState();
-                    saveStateImmediate();
+                    await saveStateImmediate();
                 }
 
                 completeUserSignIn(displayUsername, accountKey);
@@ -1709,19 +1860,27 @@
             document.getElementById('authModal').classList.remove('hidden');
         }
 
-        function saveStateImmediate() {
+        async function saveStateImmediate() {
             if (!loggedInProfileId) return;
+            const payload = {
+                goals: appState.goals,
+                activeGoalId: appState.activeGoalId,
+                activeView: appState.activeView,
+                theme: appState.theme,
+                ownerUsername: loggedInUsername,
+                updatedAt: Date.now()
+            };
+
             try {
-                savePrivateJournalToStorage(loggedInProfileId, {
-                    goals: appState.goals,
-                    activeGoalId: appState.activeGoalId,
-                    activeView: appState.activeView,
-                    theme: appState.theme,
-                    ownerUsername: loggedInUsername,
-                    updatedAt: Date.now()
-                });
-            } catch (e) {
-                console.error('Hiba az adatok helyi mentésekor:', e);
+                safeSetStorage(LOCAL_JOURNAL_PREFIX + loggedInProfileId, JSON.stringify(payload));
+            } catch (e) {}
+
+            if (isCloudActive && db) {
+                try {
+                    await setDoc(getCloudJournalDocRef(loggedInProfileId), payload);
+                } catch (err) {
+                    console.warn('Felhő mentés sikertelen:', err);
+                }
             }
         }
 
@@ -1730,7 +1889,7 @@
             if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
             saveDebounceTimer = setTimeout(() => {
                 saveStateImmediate();
-            }, 150);
+            }, 250);
         }
 
         // --- BEÁLLÍTÁSOK ÉS TÉMA VÁLTÁS ---
@@ -2159,7 +2318,6 @@
         function getLindenLeafWatermarkSvg() {
             return `
                 <svg class="linden-watermark" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-                    <!-- Valódi fűrészes szélű, aszimmetrikus szív alakú hársfalevél kontúr -->
                     <path d="M60 8
                              L55 17 L51 16 L46 24 L41 23 L36 31 L31 30 L27 39 L22 39
                              L20 49 L16 50 L17 60 L14 63 L18 72 L16 76 L23 83 L23 88
@@ -2169,10 +2327,8 @@
                              L93 39 L89 30 L84 31 L79 23 L74 24 L69 16 L65 17
                              Z"
                           stroke="currentColor" stroke-width="1.85" stroke-linejoin="round" fill="currentColor" fill-opacity="0.11" />
-                    <!-- Levélnyél és központi főér -->
                     <path d="M60 10 C60.2 35, 59.8 62, 60 85 C60.4 94, 62 103, 65 112"
                           stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                    <!-- Elsődleges oldalerek -->
                     <path d="M60 28 C51 26, 43 27, 36 31" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" />
                     <path d="M60 30 C69 27, 77 28, 84 31" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" />
                     <path d="M60 44 C48 41, 35 43, 21 49" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" />
@@ -2181,7 +2337,6 @@
                     <path d="M60 63 C74 60, 88 62, 102 71" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" />
                     <path d="M60 76 C49 75, 40 80, 32 90" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" />
                     <path d="M60 77 C71 76, 80 80, 88 90" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" />
-                    <!-- Másodlagos finom mellékerek -->
                     <path d="M43 43 L37 37 M34 45 L27 41
                              M77 44 L83 38 M86 45 L93 41
                              M41 60 L34 54 M31 63 L24 59
@@ -2220,6 +2375,8 @@
             renderReflectionPanel();
             renderStats();
             updateCertificateButtonState();
+            syncCurrentUserToLeaderboard();
+            renderProfileSettingsStats();
             checkAutoCertificateTrigger(dateKey);
         }
 
@@ -2247,6 +2404,8 @@
             renderReflectionPanel();
             renderStats();
             updateCertificateButtonState();
+            syncCurrentUserToLeaderboard();
+            renderProfileSettingsStats();
             checkAutoCertificateTrigger(selectedDateKey);
         }
 
@@ -2814,8 +2973,6 @@
             const n = Math.max(days.length, 2);
             const stepX = (width - padLeft - padRight) / Math.max(1, n - 1);
 
-            // Azonosítjuk az egymást követő teljesítési sorozatokat és a köztük lévő völgyeket,
-            // hogy minden domb egyenletesen emelkedjen fel a csúcsáig és egyenletesen ereszkedjen vissza.
             const keyPts = [
                 { x: 0, y: zeroY, type: 'base' },
                 { x: padLeft * 0.45, y: zeroY, type: 'base' }
@@ -2858,7 +3015,6 @@
             keyPts.push({ x: width - padRight * 0.45, y: zeroY, type: 'base' });
             keyPts.push({ x: width, y: zeroY, type: 'base' });
 
-            // Rendezzük és kiszűrjük a túl közeli X koordinátákat
             const pts = [];
             for (const p of keyPts) {
                 if (pts.length === 0 || p.x - pts[pts.length - 1].x > 1.5) {
@@ -2868,7 +3024,6 @@
                 }
             }
 
-            // Folyamatosan görbülő, lágy ívek, finoman lekerekített, de továbbra is határozott csúcsokkal
             let linePath = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
             for (let i = 1; i < pts.length; i++) {
                 const prev = pts[i - 1];
@@ -2876,21 +3031,18 @@
                 const dx = curr.x - prev.x;
 
                 if (curr.type === 'peak') {
-                    // Lágyan gyorsuló ív felfelé a finoman lekerekített csúcsig
                     const cp1x = prev.x + dx * 0.45;
                     const cp1y = prev.y;
                     const cp2x = curr.x - dx * 0.22;
                     const cp2y = curr.y + (prev.y - curr.y) * 0.14;
                     linePath += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
                 } else if (prev.type === 'peak') {
-                    // A finoman lekerekített csúcsból lágyan kanyarodva ereszkedik vissza az alapvonalra
                     const cp1x = prev.x + dx * 0.22;
                     const cp1y = prev.y + (curr.y - prev.y) * 0.14;
                     const cp2x = curr.x - dx * 0.45;
                     const cp2y = curr.y;
                     linePath += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`;
                 } else {
-                    // Völgyek és alapszakaszok lágy, folytonos görbülete
                     const cp1x = prev.x + dx * 0.45;
                     const cp1y = prev.y;
                     const cp2x = curr.x - dx * 0.45;
@@ -3024,7 +3176,6 @@
             renderReflectionPanel();
             renderStats();
             updateCertificateButtonState();
-            syncCurrentUserToLeaderboard();
             renderProfileSettingsStats();
         }
 
