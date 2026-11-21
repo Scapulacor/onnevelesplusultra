@@ -392,7 +392,11 @@
                         </div>
 
                         <!-- RANGLISTA MENÜPONT -->
-                        <div class="px-1">
+                        <div class="px-1 space-y-1.5">
+                            <button type="button" onclick="openMyCertificatesModal()" class="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-xs sm:text-sm shadow-sm transition flex items-center justify-between">
+                                <span>Okleveleim</span>
+                                <span id="myCertificatesCountBadge" class="px-2 py-0.5 rounded-full bg-black/25 text-xs font-black">0 db</span>
+                            </button>
                             <button type="button" onclick="openLeaderboardModal()" class="w-full py-2.5 px-3 rounded-xl bg-amber-600/90 hover:bg-amber-500 text-stone-950 font-extrabold text-xs sm:text-sm shadow-sm transition flex items-center justify-between">
                                 <span>Ranglista</span>
                                 <span class="text-xs font-black">Megnyitás</span>
@@ -932,6 +936,25 @@
         </div>
     </div>
 
+    <!-- MODÁLIS ABLAK: Okleveleim archívum -->
+    <div id="myCertificatesModal" class="hidden fixed inset-0 z-[1050] bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 no-print">
+        <div class="scenic-glass-card rounded-2xl border-2 border-scout-sand w-full max-w-3xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-scout-sand/60 pb-3">
+                <div>
+                    <h3 class="text-base sm:text-xl font-extrabold">Okleveleim</h3>
+                    <p class="text-xs opacity-80">A végigvitt önneveléseid itt akkor is megmaradnak és beleszámítanak a ranglistába, ha a célt már törölted a munkaterületről.</p>
+                </div>
+                <button type="button" onclick="closeMyCertificatesModal()" class="px-3 py-1.5 rounded-xl bg-scout-cream hover:bg-scout-sand/50 border border-scout-sand font-extrabold text-xs sm:text-sm transition">
+                    Bezárás
+                </button>
+            </div>
+
+            <div id="myCertificatesListContainer" class="space-y-2.5">
+                <!-- Archivált oklevelek listája JS-ből -->
+            </div>
+        </div>
+    </div>
+
     <!-- MODÁLIS ABLAK: Megerősítés -->
     <div id="confirmModal" class="hidden fixed inset-0 z-[1200] bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 no-print">
         <div class="scenic-glass-card rounded-2xl border-2 border-scout-sand w-full max-w-md p-5 sm:p-6 shadow-2xl space-y-4">
@@ -1086,6 +1109,7 @@
             return {
                 goals: [defaultGoal],
                 activeGoalId: defaultGoal.id,
+                certificates: [],
                 activeView: 'daily',
                 theme: 'dark'
             };
@@ -1109,13 +1133,36 @@
                 }))
                 : def.goals;
 
+            const certificates = Array.isArray(raw.certificates)
+                ? raw.certificates.map(c => ({
+                    id: c.id || ('cert_' + Math.random().toString(36).slice(2)),
+                    goalId: c.goalId || '',
+                    title: c.title || 'Önnevelési cél',
+                    frequency: ['daily', 'weekly', 'monthly'].includes(c.frequency) ? c.frequency : 'daily',
+                    startDate: c.startDate || '',
+                    endDate: c.endDate || '',
+                    maxStreak: Number(c.maxStreak) || 0,
+                    bestDayText: c.bestDayText || 'Nincs adat',
+                    successUnits: Number(c.successUnits) || 0,
+                    failUnits: Number(c.failUnits) || 0,
+                    unitName: c.unitName || 'nap',
+                    completedDaysCount: Number(c.completedDaysCount) || 0,
+                    daysSnapshot: Array.isArray(c.daysSnapshot) ? c.daysSnapshot : [],
+                    issuedDate: c.issuedDate || getTodayDateKey()
+                }))
+                : [];
+
             const activeGoalId = goals.some(g => g.id === raw.activeGoalId) ? raw.activeGoalId : goals[0].id;
-            return {
+            const normalized = {
                 goals,
                 activeGoalId,
+                certificates,
                 activeView: ['daily', 'weekly', 'monthly'].includes(raw.activeView) ? raw.activeView : 'daily',
                 theme: raw.theme === 'light' ? 'light' : 'dark'
             };
+
+            syncCompletedGoalsToCertificates(normalized);
+            return normalized;
         }
 
         const memoryStorageFallback = {};
@@ -1178,23 +1225,19 @@
         }
 
         function getCloudUserAccountDocRef(normalizedKey) {
-            const uid = auth?.currentUser?.uid || 'shared';
-            return doc(db, 'artifacts', appId, 'users', uid, 'accounts', normalizedKey);
+            return doc(db, 'artifacts', appId, 'public', 'data', 'accounts', normalizedKey);
         }
 
         function getCloudJournalDocRef(profileId) {
-            const uid = auth?.currentUser?.uid || 'shared';
-            return doc(db, 'artifacts', appId, 'users', uid, 'journals', profileId);
+            return doc(db, 'artifacts', appId, 'public', 'data', 'journals', profileId);
         }
 
         function getCloudLeaderboardDocRef(profileId) {
-            const uid = auth?.currentUser?.uid || 'shared';
-            return doc(db, 'artifacts', appId, 'users', uid, 'leaderboard', profileId);
+            return doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', profileId);
         }
 
         function getCloudLeaderboardCollectionRef() {
-            const uid = auth?.currentUser?.uid || 'shared';
-            return collection(db, 'artifacts', appId, 'users', uid, 'leaderboard');
+            return collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
         }
 
         function calculateUserAchievementCounts(stateObj) {
@@ -1204,17 +1247,33 @@
             let weekly = 0;
             let monthly = 0;
 
-            if (st && Array.isArray(st.goals)) {
-                st.goals.forEach(g => {
-                    Object.values(g.records || {}).forEach(val => {
-                        if (val === 1) completedDays++;
-                    });
-                    if (isGoalCompleted(g)) {
-                        if (g.frequency === 'weekly') weekly++;
-                        else if (g.frequency === 'monthly') monthly++;
-                        else daily++;
+            if (st) {
+                syncCompletedGoalsToCertificates(st);
+                const certs = Array.isArray(st.certificates) ? st.certificates : [];
+                const activeGoalIdsInCerts = new Set(certs.map(c => c.goalId).filter(Boolean));
+
+                certs.forEach(c => {
+                    if (c.frequency === 'weekly') weekly++;
+                    else if (c.frequency === 'monthly') monthly++;
+                    else daily++;
+
+                    if (Array.isArray(c.daysSnapshot) && c.daysSnapshot.length > 0) {
+                        completedDays += c.daysSnapshot.filter(d => d.status === 1).length;
+                    } else {
+                        completedDays += Number(c.completedDaysCount) || 0;
                     }
                 });
+
+                // A még folyamatban lévő célok sikeres napjait is hozzászámoljuk az összesített teljesített napokhoz
+                if (Array.isArray(st.goals)) {
+                    st.goals.forEach(g => {
+                        if (!activeGoalIdsInCerts.has(g.id)) {
+                            Object.values(g.records || {}).forEach(val => {
+                                if (val === 1) completedDays++;
+                            });
+                        }
+                    });
+                }
             }
             return { completedDays, daily, weekly, monthly };
         }
@@ -1243,32 +1302,42 @@
         }
 
         async function initCloudConnection() {
+            const isCustomKeyProvided = Boolean(CUSTOM_FIREBASE_CONFIG && CUSTOM_FIREBASE_CONFIG.apiKey);
             if (!activeFirebaseConfig || !activeFirebaseConfig.apiKey) {
-                updateCloudStatusUI(false, 'Nincs beállítva Firebase kulcs (csak ezen az eszközön ment).');
-                return;
+                updateCloudStatusUI(false, 'Nincs beállítva Firebase kulcs (helyi böngészős mentés aktív).');
+                return false;
             }
             try {
-                const fbApp = initializeApp(activeFirebaseConfig);
-                auth = getAuth(fbApp);
-                db = getFirestore(fbApp);
-                if (auth) {
+                if (!db) {
+                    const fbApp = initializeApp(activeFirebaseConfig);
+                    auth = getAuth(fbApp);
+                    db = getFirestore(fbApp);
+                }
+                if (auth && !auth.currentUser) {
                     try {
                         await signInAnonymously(auth);
                     } catch (authErr) {
                         console.warn('Névtelen hitelesítés kihagyva:', authErr?.code);
                     }
                 }
-                const testUid = auth?.currentUser?.uid || 'shared';
-                await getDoc(doc(db, 'artifacts', appId, 'users', testUid, 'health', 'ping'));
+                await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'health', 'ping'));
                 isCloudActive = true;
                 updateCloudStatusUI(true, 'Központi felhő adatbázis csatlakoztatva (több eszközös mód).');
+                return true;
             } catch (err) {
-                console.warn('Felhő kapcsolat hiba:', err);
                 isCloudActive = false;
+                if (!isCustomKeyProvided) {
+                    // Beépített előnézeti (Code Preview) környezetben a közös public gyűjtemény korlátozott,
+                    // ezért itt csendben helyi módra váltunk hibaüzenet nélkül.
+                    updateCloudStatusUI(false, 'Előnézeti mód (helyi böngészős mentés aktív).');
+                    return false;
+                }
+                console.warn('Felhő kapcsolat hiba:', err);
                 const errHint = err?.code === 'permission-denied'
-                    ? 'Firestore jogosultsági hiba! A Firebase Console -> Firestore -> Rules fülön engedélyezd az írást/olvasást.'
-                    : `Felhő hiba (${err?.code || 'kapcsolati hiba'}).`;
+                    ? 'Firestore jogosultsági hiba! A Firebase Console -> Firestore -> Rules fülön engedélyezd az írást/olvasást (allow read, write: if true;).'
+                    : `Felhő hiba (${err?.code || err?.message || 'kapcsolati hiba'}).`;
                 updateCloudStatusUI(false, errHint);
+                return false;
             }
         }
 
@@ -1302,11 +1371,13 @@
             const weeklyEl = document.getElementById('profileCompletedWeeklyGoalsCount');
             const monthlyEl = document.getElementById('profileCompletedMonthlyGoalsCount');
             const nameInput = document.getElementById('profileUsernameInput');
+            const certCountBadge = document.getElementById('myCertificatesCountBadge');
 
             if (daysEl) daysEl.textContent = `${counts.completedDays} nap`;
             if (dailyEl) dailyEl.textContent = `${counts.daily} db`;
             if (weeklyEl) weeklyEl.textContent = `${counts.weekly} db`;
             if (monthlyEl) monthlyEl.textContent = `${counts.monthly} db`;
+            if (certCountBadge) certCountBadge.textContent = `${(appState?.certificates || []).length} db`;
             if (nameInput && loggedInUsername && document.activeElement !== nameInput) {
                 nameInput.value = loggedInUsername;
             }
@@ -1695,15 +1766,23 @@
             btn.textContent = 'Fiók létrehozása...';
 
             try {
+                // Ha van megadva Firebase kulcs, de még nem csatlakozott, próbáljuk újra most
+                if (activeFirebaseConfig && activeFirebaseConfig.apiKey && !isCloudActive) {
+                    await initCloudConnection();
+                }
+
                 // 1. Ellenőrzés a felhőben (ha aktív)
                 if (isCloudActive && db) {
                     const cloudUserSnap = await getDoc(getCloudUserAccountDocRef(normalizedKey));
                     if (cloudUserSnap.exists()) {
-                        showAuthError('Ez a felhasználónév már foglalt! Kérlek válassz egy másik felhasználónevet.');
+                        showAuthError('Ez a felhasználónév már foglalt a felhőben! Kérlek válassz egy másik felhasználónevet.');
                         return;
                     }
+                } else if (activeFirebaseConfig && activeFirebaseConfig.apiKey) {
+                    showAuthError('Nem sikerült csatlakozni a Firebase felhőhöz! Ellenőrizd a kulcsokat és a Firestore Rules beállítást.');
+                    return;
                 } else {
-                    // 2. Helyi tároló ellenőrzése csak akkor, ha nincs felhő
+                    // 2. Helyi tároló ellenőrzése csak akkor, ha nincs beállítva Firebase kulcs
                     const registry = getLocalUserRegistry();
                     if (registry[normalizedKey]) {
                         showAuthError('Ez a felhasználónév már foglalt! Kérlek válassz egy másik felhasználónevet.');
@@ -1767,8 +1846,14 @@
             btn.textContent = 'Belépés...';
 
             try {
+                // Ha van megadva Firebase kulcs, de még nem csatlakozott, próbáljuk újra most
+                if (activeFirebaseConfig && activeFirebaseConfig.apiKey && !isCloudActive) {
+                    await initCloudConnection();
+                }
+
                 const enteredHash = await hashString(password);
                 let accountRecord = null;
+                let loadedFromLocalOnly = false;
 
                 // 1. Először a felhőből kérjük le a fiókot (így másik eszközről is beléphet!)
                 if (isCloudActive && db) {
@@ -1778,10 +1863,14 @@
                     }
                 }
 
-                // 2. Ha felhőben nem volt (vagy offline vagyunk), megnézzük a helyi tárolót
-                if (!accountRecord && !isCloudActive) {
+                // 2. Ha a felhőben még nem volt meg (pl. korábban helyi módban regisztráltad ezen az eszközön),
+                // megnézzük a helyi tárolót, és belépéskor automatikusan feltöltjük a felhőbe!
+                if (!accountRecord) {
                     const registry = getLocalUserRegistry();
-                    accountRecord = registry[normalizedKey] || null;
+                    if (registry[normalizedKey]) {
+                        accountRecord = registry[normalizedKey];
+                        loadedFromLocalOnly = true;
+                    }
                 }
 
                 if (!accountRecord || accountRecord.passwordHash !== enteredHash) {
@@ -1792,7 +1881,11 @@
                 const accountKey = accountRecord.accountKey;
                 const displayUsername = accountRecord.username || rawUsername;
 
-                // Helyi gyorsítótárba is elmentjük a fiók metaadatait
+                // Ha ez a fiók eddig csak ezen az eszközön létezett, most feltöltjük a felhőbe is!
+                if (loadedFromLocalOnly && isCloudActive && db) {
+                    await setDoc(getCloudUserAccountDocRef(normalizedKey), accountRecord);
+                }
+
                 const registry = getLocalUserRegistry();
                 registry[normalizedKey] = accountRecord;
                 saveLocalUserRegistry(registry);
@@ -1819,6 +1912,10 @@
                 if (loadedJournal) {
                     appState = normalizeState(loadedJournal);
                     safeSetStorage(LOCAL_JOURNAL_PREFIX + accountKey, JSON.stringify(loadedJournal));
+                    // Mindig szinkronizáljuk fel a naplót a felhőbe is, hogy a másik eszköz lássa
+                    if (isCloudActive && db) {
+                        await saveStateImmediate();
+                    }
                 } else {
                     appState = createDefaultState();
                     await saveStateImmediate();
@@ -1875,9 +1972,11 @@
 
         async function saveStateImmediate() {
             if (!loggedInProfileId) return;
+            syncCompletedGoalsToCertificates(appState);
             const payload = {
                 goals: appState.goals,
                 activeGoalId: appState.activeGoalId,
+                certificates: appState.certificates || [],
                 activeView: appState.activeView,
                 theme: appState.theme,
                 ownerUsername: loggedInUsername,
@@ -2035,7 +2134,7 @@
             }
 
             if (deleteBtn) {
-                if (appState.goals.length > 1) {
+                if (appState.goals.length > 1 || isGoalCompleted(goal)) {
                     deleteBtn.classList.remove('hidden');
                 } else {
                     deleteBtn.classList.add('hidden');
@@ -2212,20 +2311,39 @@
         }
 
         function confirmDeleteCurrentGoal() {
-            if (appState.goals.length <= 1) {
-                showToast('Legalább egy önnevelési célnak maradnia kell.');
+            const goal = getActiveGoal();
+            if (!goal) return;
+            const completed = isGoalCompleted(goal);
+
+            if (appState.goals.length <= 1 && !completed) {
+                showToast('Folyamatban lévő egyetlen önnevelési célt nem törölhetsz; előbb hozz létre egy újat.');
                 return;
             }
-            const goal = getActiveGoal();
+
+            if (completed) {
+                upsertCertificateForGoal(goal, appState);
+            }
+
+            const confirmText = completed
+                ? `Biztosan törölni szeretnéd a végigvitt „${goal.title}” vállalást a munkaterületről? Az okleveled és a ranglista-pontjaid biztonságban megmaradnak az „Okleveleim” menüpontban.`
+                : `Biztosan törölni szeretnéd a(z) „${goal.title}” vállalást és minden hozzá tartozó bejegyzést?`;
+
             openConfirmModal(
                 'Cél törlése',
-                `Biztosan törölni szeretnéd a(z) „${goal.title}” vállalást és minden hozzá tartozó bejegyzést?`,
+                confirmText,
                 () => {
                     appState.goals = appState.goals.filter(g => g.id !== goal.id);
+                    if (appState.goals.length === 0) {
+                        const fresh = createDefaultState();
+                        appState.goals = fresh.goals;
+                    }
                     appState.activeGoalId = appState.goals[0].id;
-                    saveState();
+                    saveStateImmediate();
+                    syncCurrentUserToLeaderboard();
                     renderAll();
-                    showToast('A vállalás törölve lett.');
+                    showToast(completed
+                        ? 'A végigvitt cél törölve a listából – az okleveled megmaradt az „Okleveleim” között!'
+                        : 'A vállalás törölve lett.');
                 }
             );
         }
@@ -2872,6 +2990,51 @@
             return endVal === 1 || endVal === 2;
         }
 
+        function upsertCertificateForGoal(goal, stateObj = appState) {
+            if (!goal || !isGoalCompleted(goal) || !stateObj) return null;
+            if (!Array.isArray(stateObj.certificates)) stateObj.certificates = [];
+
+            const stats = computeCertificateStats(goal, stateObj);
+            const completedDaysCount = stats.days.filter(d => d.status === 1).length;
+            const existingIdx = stateObj.certificates.findIndex(c => c.goalId === goal.id);
+
+            const certRecord = {
+                id: existingIdx >= 0 ? stateObj.certificates[existingIdx].id : ('cert_' + goal.id),
+                goalId: goal.id,
+                title: goal.title,
+                frequency: goal.frequency || 'daily',
+                startDate: goal.startDate || '',
+                endDate: goal.endDate || '',
+                maxStreak: stats.maxStreak,
+                bestDayText: stats.bestDayText,
+                successUnits: stats.successUnits,
+                failUnits: stats.failUnits,
+                unitName: stats.unitName,
+                completedDaysCount,
+                daysSnapshot: stats.days.map(d => ({ dateKey: d.dateKey, status: d.status })),
+                issuedDate: existingIdx >= 0 && stateObj.certificates[existingIdx].issuedDate
+                    ? stateObj.certificates[existingIdx].issuedDate
+                    : getTodayDateKey()
+            };
+
+            if (existingIdx >= 0) {
+                stateObj.certificates[existingIdx] = certRecord;
+            } else {
+                stateObj.certificates.push(certRecord);
+            }
+            return certRecord;
+        }
+
+        function syncCompletedGoalsToCertificates(stateObj = appState) {
+            if (!stateObj || !Array.isArray(stateObj.goals)) return;
+            if (!Array.isArray(stateObj.certificates)) stateObj.certificates = [];
+            stateObj.goals.forEach(g => {
+                if (isGoalCompleted(g)) {
+                    upsertCertificateForGoal(g, stateObj);
+                }
+            });
+        }
+
         function updateCertificateButtonState() {
             const goal = getActiveGoal();
             const btn = document.getElementById('openCertificateBtn');
@@ -2887,15 +3050,19 @@
             const goal = getActiveGoal();
             if (!goal || !goal.endDate) return;
             if (changedDateKey === goal.endDate && isGoalCompleted(goal)) {
+                upsertCertificateForGoal(goal, appState);
+                saveStateImmediate();
+                syncCurrentUserToLeaderboard();
+                renderProfileSettingsStats();
                 if (autoCertTimer) clearTimeout(autoCertTimer);
-                showToast('Gratulálunk! Elérted a vállalásod végét, az okleveled 3 másodperc múlva megnyílik...');
+                showToast('Gratulálunk! Elérted a vállalásod végét, az okleveled elmentve az „Okleveleim” közé és 3 másodperc múlva megnyílik...');
                 autoCertTimer = setTimeout(() => {
                     openCertificateModal();
                 }, 3000);
             }
         }
 
-        function computeCertificateStats(goal) {
+        function computeCertificateStats(goal, stateObj = appState) {
             const days = getGoalTimelineDays(goal);
             const { maxStreak } = computeStreaks(days);
 
@@ -2958,7 +3125,9 @@
                 });
             }
 
-            const completedGoalsCount = appState.goals.filter(g => isGoalCompleted(g)).length || 1;
+            const existingCerts = Array.isArray(stateObj?.certificates) ? stateObj.certificates : [];
+            const idxInCerts = existingCerts.findIndex(c => c.goalId === goal.id);
+            const completedGoalsCount = idxInCerts >= 0 ? (idxInCerts + 1) : (existingCerts.length + 1);
 
             return {
                 days,
@@ -3088,19 +3257,92 @@
                 return;
             }
 
-            const stats = computeCertificateStats(goal);
+            const certRecord = upsertCertificateForGoal(goal, appState);
+            if (certRecord) {
+                openSavedCertificateById(certRecord.id);
+            }
+        }
 
-            document.getElementById('certOrdinalBadge').textContent = `${stats.completedOrdinal}. teljesített önnevelési cél`;
-            document.getElementById('certGoalTitle').textContent = goal.title;
-            document.getElementById('certGoalPeriod').textContent = `Időtartam: ${formatDateHu(goal.startDate)} – ${formatDateHu(goal.endDate)}`;
-            document.getElementById('certMaxStreak').textContent = `${stats.maxStreak} nap`;
-            document.getElementById('certBestWeekday').textContent = stats.bestDayText;
-            document.getElementById('certSuccessUnits').textContent = `${stats.successUnits} ${stats.unitName}`;
-            document.getElementById('certFailUnits').textContent = `${stats.failUnits} ${stats.unitName}`;
-            document.getElementById('certIssuedDate').textContent = formatDateHu(getTodayDateKey());
+        function openSavedCertificateById(certId) {
+            const certs = Array.isArray(appState?.certificates) ? appState.certificates : [];
+            const idx = certs.findIndex(c => c.id === certId);
+            if (idx < 0) {
+                showToast('A kiválasztott oklevél nem található.');
+                return;
+            }
 
-            renderEnthusiasmTerrainSvg(stats.days);
+            const cert = certs[idx];
+            document.getElementById('certOrdinalBadge').textContent = `${idx + 1}. teljesített önnevelési cél`;
+            document.getElementById('certGoalTitle').textContent = cert.title;
+            document.getElementById('certGoalPeriod').textContent = `Időtartam: ${formatDateHu(cert.startDate)} – ${formatDateHu(cert.endDate)}`;
+            document.getElementById('certMaxStreak').textContent = `${cert.maxStreak} nap`;
+            document.getElementById('certBestWeekday').textContent = cert.bestDayText;
+            document.getElementById('certSuccessUnits').textContent = `${cert.successUnits} ${cert.unitName}`;
+            document.getElementById('certFailUnits').textContent = `${cert.failUnits} ${cert.unitName}`;
+            document.getElementById('certIssuedDate').textContent = formatDateHu(cert.issuedDate || getTodayDateKey());
+
+            renderEnthusiasmTerrainSvg(cert.daysSnapshot || []);
             document.getElementById('certificateModal').classList.remove('hidden');
+        }
+
+        function openMyCertificatesModal() {
+            const menu = document.getElementById('settingsDropdown');
+            if (menu) menu.classList.add('hidden');
+
+            syncCompletedGoalsToCertificates(appState);
+            renderMyCertificatesList();
+            document.getElementById('myCertificatesModal').classList.remove('hidden');
+        }
+
+        function closeMyCertificatesModal() {
+            document.getElementById('myCertificatesModal').classList.add('hidden');
+        }
+
+        function renderMyCertificatesList() {
+            const container = document.getElementById('myCertificatesListContainer');
+            if (!container) return;
+
+            const certs = Array.isArray(appState?.certificates) ? appState.certificates : [];
+            if (certs.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 rounded-2xl border border-dashed border-scout-sand text-center space-y-1.5">
+                        <div class="font-extrabold text-sm">Még nincs archivált okleveled</div>
+                        <p class="text-xs opacity-80">Amint egy önnevelési vállalásod utolsó napját is elkönyveled, az okleveled automatikusan ide kerül, és a cél törlése után is visszanézheted.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = certs.map((cert, idx) => {
+                const freqLabel = cert.frequency === 'weekly'
+                    ? 'Heti önnevelés'
+                    : (cert.frequency === 'monthly' ? 'Havi önnevelés' : 'Mindennapi önnevelés');
+                const stillActive = appState.goals.some(g => g.id === cert.goalId);
+                const statusTag = stillActive
+                    ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/70 text-emerald-300 border border-emerald-500/40">Munkaterületen is aktív</span>'
+                    : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-scout-cream text-scout-bark border border-scout-sand">Archivált (cél törölve)</span>';
+
+                return `
+                    <div class="p-3.5 sm:p-4 rounded-xl border-2 border-scout-sand bg-scout-cream/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="space-y-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-md bg-amber-500 text-stone-950 font-black text-xs">${idx + 1}.</span>
+                                <h4 class="font-extrabold text-sm sm:text-base truncate">${escapeHtml(cert.title)}</h4>
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-900/75 text-emerald-200 border border-emerald-500/40">${freqLabel}</span>
+                                ${statusTag}
+                            </div>
+                            <div class="text-xs opacity-85 flex flex-wrap gap-x-4 gap-y-1">
+                                <span>Időszak: <strong>${formatDateHu(cert.startDate)} – ${formatDateHu(cert.endDate)}</strong></span>
+                                <span>Teljesítés: <strong>${cert.successUnits} ${cert.unitName}</strong></span>
+                                <span>Leghosszabb sorozat: <strong>${cert.maxStreak} nap</strong></span>
+                            </div>
+                        </div>
+                        <button type="button" onclick="openSavedCertificateById('${cert.id}')" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-xs sm:text-sm shadow-xs shrink-0 transition">
+                            Oklevél megtekintése
+                        </button>
+                    </div>
+                `;
+            }).join('');
         }
 
         function closeCertificateModal() {
@@ -3201,6 +3443,9 @@
             confirmDeleteProfile,
             openLeaderboardModal,
             closeLeaderboardModal,
+            openMyCertificatesModal,
+            closeMyCertificatesModal,
+            openSavedCertificateById,
             toggleSettingsMenu,
             setTheme,
             openNewGoalModal,
